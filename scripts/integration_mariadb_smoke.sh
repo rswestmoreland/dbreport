@@ -3,51 +3,128 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORK_DIR="/tmp/dbreport-smoke"
-DB_NAME="dbreport_smoke"
+DB_NAME="dbreport_test"
 DB_USER="dbreport_smoke_user"
 DB_PASSWORD="smoke_pw_local_only"
 DB_HOST="127.0.0.1"
-DB_PORT="3306"
+DB_PORT="13306"
+DB_SOCKET="$WORK_DIR/mariadb.sock"
+DB_PID_FILE="$WORK_DIR/mariadb.pid"
+DB_LOG_FILE="$WORK_DIR/mariadb.log"
+DB_DATA_DIR="$WORK_DIR/mariadb-data"
 CONTAINER_NAME="dbreport-smoke-mariadb-$RANDOM"
 MARIADB_IMAGE="mariadb:11"
 REPORT_PATH="$WORK_DIR/report.html"
+REPORT_OUTPUT_DIR="/tmp/dbreport-smoke"
 
 SCHEMA_FILE="$ROOT_DIR/examples/auth-login-schema.sql"
 SEED_FILE="$ROOT_DIR/examples/auth-login-seed.sql"
 REPORT_CONFIG="$WORK_DIR/auth-login-report.yml"
 
 MODE=""
-SKIP_REASONS=()
 CONTAINER_STARTED=0
+LOCAL_SERVER_STARTED=0
 
 cleanup() {
+  if [[ "$LOCAL_SERVER_STARTED" -eq 1 && -f "$DB_PID_FILE" ]]; then
+    local pid
+    pid="$(cat "$DB_PID_FILE" 2>/dev/null || true)"
+    if [[ -n "$pid" ]] && kill -0 "$pid" >/dev/null 2>&1; then
+      kill "$pid" >/dev/null 2>&1 || true
+      for _ in $(seq 1 30); do
+        if ! kill -0 "$pid" >/dev/null 2>&1; then
+          break
+        fi
+        sleep 0.2
+      done
+      kill -9 "$pid" >/dev/null 2>&1 || true
+    fi
+  fi
   if [[ "$CONTAINER_STARTED" -eq 1 ]]; then
     docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
   fi
   rm -rf "$WORK_DIR"
+  rm -f "$REPORT_OUTPUT_DIR/report.html"
 }
 trap cleanup EXIT
 
 mkdir -p "$WORK_DIR"
 cp "$ROOT_DIR/examples/auth-login-report.yml" "$REPORT_CONFIG"
+sed -i "s/^  port: .*/  port: $DB_PORT/" "$REPORT_CONFIG"
+sed -i "s/^  name: .*/  name: \"$DB_NAME\"/" "$REPORT_CONFIG"
 
 log() { printf '%s\n' "$*"; }
 skip() { log "SKIP: $*"; exit 2; }
-
-if command -v docker >/dev/null 2>&1; then
-  MODE="docker"
-elif command -v mariadb >/dev/null 2>&1 || command -v mysql >/dev/null 2>&1; then
-  MODE="local"
-else
-  SKIP_REASONS+=("docker not found")
-  SKIP_REASONS+=("mariadb/mysql client not found")
-  skip "No MariaDB runtime available (${SKIP_REASONS[*]})."
-fi
 
 MYSQL_CLIENT="mariadb"
 if ! command -v mariadb >/dev/null 2>&1; then
   MYSQL_CLIENT="mysql"
 fi
+
+MARIADB_SERVER_BIN=""
+if command -v mariadbd >/dev/null 2>&1; then
+  MARIADB_SERVER_BIN="$(command -v mariadbd)"
+elif command -v mysqld >/dev/null 2>&1; then
+  MARIADB_SERVER_BIN="$(command -v mysqld)"
+fi
+
+if [[ -n "$MARIADB_SERVER_BIN" ]] && command -v "$MYSQL_CLIENT" >/dev/null 2>&1; then
+  MODE="local"
+elif command -v docker >/dev/null 2>&1; then
+  MODE="docker"
+else
+  skip "No MariaDB runtime available (need local mariadbd/mysqld + mariadb/mysql client, or Docker)."
+fi
+
+start_local_mariadb() {
+  log "Using local temporary MariaDB smoke test"
+
+  rm -rf "$DB_DATA_DIR"
+  mkdir -p "$DB_DATA_DIR"
+
+  if command -v mariadb-install-db >/dev/null 2>&1; then
+    mariadb-install-db --datadir="$DB_DATA_DIR" --auth-root-authentication-method=normal --skip-test-db >/dev/null
+  elif command -v mysql_install_db >/dev/null 2>&1; then
+    mysql_install_db --datadir="$DB_DATA_DIR" --auth-root-authentication-method=normal --skip-test-db >/dev/null
+  else
+    skip "Unable to initialize local MariaDB datadir (no mariadb-install-db/mysql_install_db)"
+  fi
+
+  "$MARIADB_SERVER_BIN" \
+    --datadir="$DB_DATA_DIR" \
+    --socket="$DB_SOCKET" \
+    --pid-file="$DB_PID_FILE" \
+    --port="$DB_PORT" \
+    --bind-address=127.0.0.1 \
+    --skip-networking=0 \
+    --skip-grant-tables \
+    --log-error="$DB_LOG_FILE" \
+    --user=root >/dev/null 2>&1 &
+
+  LOCAL_SERVER_STARTED=1
+
+  local ready=0
+  for _ in $(seq 1 90); do
+    if "$MYSQL_CLIENT" --protocol=TCP -h "$DB_HOST" -P "$DB_PORT" -u root -e 'SELECT 1' >/dev/null 2>&1; then
+      ready=1
+      break
+    fi
+    sleep 1
+  done
+
+  if [[ "$ready" -ne 1 ]]; then
+    log "Local MariaDB failed readiness check"
+    [[ -f "$DB_LOG_FILE" ]] && tail -n 120 "$DB_LOG_FILE" || true
+    exit 1
+  fi
+
+  "$MYSQL_CLIENT" --protocol=TCP -h "$DB_HOST" -P "$DB_PORT" -u root -e "CREATE DATABASE IF NOT EXISTS $DB_NAME" >/dev/null
+  "$MYSQL_CLIENT" --protocol=TCP -h "$DB_HOST" -P "$DB_PORT" -u root "$DB_NAME" < "$SCHEMA_FILE"
+  "$MYSQL_CLIENT" --protocol=TCP -h "$DB_HOST" -P "$DB_PORT" -u root "$DB_NAME" < "$SEED_FILE"
+
+  export DBREPORT_DB_USER="root"
+  export DBREPORT_DB_PASSWORD="$DB_PASSWORD"
+}
 
 if [[ "$MODE" == "docker" ]]; then
   log "Using Docker-based MariaDB smoke test"
@@ -73,35 +150,18 @@ if [[ "$MODE" == "docker" ]]; then
 
   docker exec -i "$CONTAINER_NAME" mariadb -uroot -p"$DB_PASSWORD" "$DB_NAME" < "$SCHEMA_FILE"
   docker exec -i "$CONTAINER_NAME" mariadb -uroot -p"$DB_PASSWORD" "$DB_NAME" < "$SEED_FILE"
-else
-  log "Using local MariaDB client/server smoke test"
-  if ! command -v "$MYSQL_CLIENT" >/dev/null 2>&1; then
-    skip "Local mode selected but no mariadb/mysql client available"
-  fi
 
-  export DBREPORT_DB_USER="${DBREPORT_DB_USER:-$DB_USER}"
-  export DBREPORT_DB_PASSWORD="${DBREPORT_DB_PASSWORD:-$DB_PASSWORD}"
-  DB_USER="$DBREPORT_DB_USER"
-  DB_PASSWORD="$DBREPORT_DB_PASSWORD"
-
-  if ! "$MYSQL_CLIENT" -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e 'SELECT 1' >/dev/null 2>&1; then
-    skip "Local MariaDB is not reachable at $DB_HOST:$DB_PORT for user $DB_USER"
-  fi
-  "$MYSQL_CLIENT" -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS $DB_NAME" >/dev/null
-  "$MYSQL_CLIENT" -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" < "$SCHEMA_FILE"
-  "$MYSQL_CLIENT" -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" < "$SEED_FILE"
-fi
-
-if [[ "$MODE" == "docker" ]]; then
   export DBREPORT_DB_USER="$DB_USER"
   export DBREPORT_DB_PASSWORD="$DB_PASSWORD"
+else
+  start_local_mariadb
 fi
 
 cd "$ROOT_DIR"
 go build -o "$WORK_DIR/dbreport" ./cmd/dbreport
 
 "$WORK_DIR/dbreport" check --config "$REPORT_CONFIG"
-"$WORK_DIR/dbreport" run --config "$REPORT_CONFIG"
+"$WORK_DIR/dbreport" run --config "$REPORT_CONFIG" --output "$REPORT_PATH"
 
 [[ -f "$REPORT_PATH" ]] || { log "report file missing: $REPORT_PATH"; exit 1; }
 [[ -s "$REPORT_PATH" ]] || { log "report file empty: $REPORT_PATH"; exit 1; }
@@ -113,7 +173,7 @@ grep -q "Top Browsers Used" "$REPORT_PATH"
 grep -q "Top Countries Logged in From" "$REPORT_PATH"
 grep -q "<svg" "$REPORT_PATH"
 
-if grep -Eqi 'http://|https://|<script|\bsrc=|\bhref=' "$REPORT_PATH"; then
+if grep -Eqi 'https?://|<script|\bsrc=|\bhref=' "$REPORT_PATH"; then
   log "report contains disallowed external/script references"
   exit 1
 fi
