@@ -177,6 +177,18 @@ Recommended defaults:
 
 See `docs/SECURITY.md` for more detail.
 
+## Optional MariaDB integration smoke test
+
+Run the optional integration smoke test to validate end-to-end report generation against a temporary MariaDB instance:
+
+```sh
+./scripts/integration_mariadb_smoke.sh
+```
+
+The script prefers Docker, falls back to a reachable local MariaDB instance, and otherwise exits with a clear skip message.
+
+![Sample dbreport HTML report](docs/assets/sample-report.svg)
+
 ## Build
 
 ```sh
