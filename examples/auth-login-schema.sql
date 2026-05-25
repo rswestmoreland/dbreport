@@ -14,6 +14,7 @@ CREATE TABLE auth_attempts (
   user_id INT NOT NULL,
   login_time DATETIME NOT NULL,
   result ENUM('success', 'failure') NOT NULL,
+  reason VARCHAR(80) NOT NULL,
   FOREIGN KEY (user_id) REFERENCES user_accounts(id)
 );
 

@@ -17,3 +17,10 @@ func TestConvertCell(t *testing.T) {
 		t.Fatalf("unexpected time cell: %#v", got)
 	}
 }
+
+func TestConvertCellMidnightTimestampKeepsTime(t *testing.T) {
+	when := time.Date(2026, 5, 25, 0, 0, 0, 0, time.UTC)
+	if got := ConvertCell(when); got.Text != "2026-05-25 00:00:00" {
+		t.Fatalf("unexpected midnight time cell: %#v", got)
+	}
+}

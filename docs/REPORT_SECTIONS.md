@@ -112,3 +112,10 @@ Contract:
 - Use `LIMIT` for detail tables.
 - Keep expensive aggregation queries indexed.
 - Avoid selecting sensitive fields unless necessary.
+
+## Layout behavior
+
+- Query order in YAML controls report order.
+- Consecutive `metric` sections are automatically rendered as a compact metric-tile grid.
+- Non-metric sections remain full-width cards in the same configured order.
+- Metric tile size and placement are not YAML-configurable yet.
