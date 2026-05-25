@@ -39,3 +39,25 @@ No real customer or personal production data is used.
 - Docker container is removed automatically on exit.
 - Temporary workspace `/tmp/dbreport-smoke` (binary/config/report) is removed automatically.
 - No persistent Docker volumes are created by the script.
+
+## Saving a committed sample report
+
+By default, the smoke test cleans up temporary report output under `/tmp/dbreport-smoke`.
+
+To regenerate and save the documentation sample report:
+
+```sh
+DBREPORT_KEEP_SAMPLE_REPORT=1 ./scripts/integration_mariadb_smoke.sh
+```
+
+When `DBREPORT_KEEP_SAMPLE_REPORT=1` is set, the script copies the generated HTML report to:
+
+- `docs/assets/sample-report.html`
+
+The script still removes temporary MariaDB data directories, socket/pid/log files, temp binary files, and temp workspace content.
+
+## Visual sample asset
+
+The repository currently uses `docs/assets/sample-report.svg` as the README visual. A PNG visual can be generated from `docs/assets/sample-report.html` in environments with a headless browser toolchain.
+
+If PNG regeneration is not available in your local environment, keep `docs/assets/sample-report.html` as the source of truth and update `docs/assets/sample-report.svg` as fallback documentation art.
