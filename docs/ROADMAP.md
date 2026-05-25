@@ -15,7 +15,7 @@ single-binary MariaDB reporting utility, not a full BI platform.
 ## Candidate near-term hardening
 
 - Complete external build and test validation.
-- Add integration tests using a temporary MariaDB test instance.
+- ✅ Optional integration smoke test script for temporary Docker/local MariaDB is available.
 - Add more example reports.
 - Improve chart sizing for very large result sets.
 - Add stricter config diagnostics where useful.
@@ -33,3 +33,5 @@ single-binary MariaDB reporting utility, not a full BI platform.
 - Redaction rules.
 - CSV or JSON export.
 - Vault integration.
+
+- Consider adding optional CI execution for the MariaDB smoke test in a non-blocking job.

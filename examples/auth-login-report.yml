@@ -1,0 +1,102 @@
+title: "Authentication Login Activity Report"
+
+output:
+  html: "/tmp/dbreport-smoke/report.html"
+
+database:
+  host: "127.0.0.1"
+  port: 3306
+  name: "dbreport_smoke"
+  user_env: "DBREPORT_DB_USER"
+  password_env: "DBREPORT_DB_PASSWORD"
+  timeout_seconds: 10
+  tls: false
+
+limits:
+  max_rows_per_query: 1000
+
+email:
+  enabled: false
+
+queries:
+  - id: "total_users"
+    title: "Total Users"
+    type: "metric"
+    sql: |
+      SELECT COUNT(*) AS value
+      FROM user_accounts;
+
+  - id: "total_login_attempts"
+    title: "Total Login Attempts"
+    type: "metric"
+    sql: |
+      SELECT COUNT(*) AS value
+      FROM auth_attempts;
+
+  - id: "failed_login_count"
+    title: "Failed Login Count"
+    type: "metric"
+    sql: |
+      SELECT COUNT(*) AS value
+      FROM auth_attempts
+      WHERE result = 'failure';
+
+  - id: "successful_login_count"
+    title: "Successful Login Count"
+    type: "metric"
+    sql: |
+      SELECT COUNT(*) AS value
+      FROM auth_attempts
+      WHERE result = 'success';
+
+  - id: "last_logins_by_user"
+    title: "Last Logins by User"
+    type: "table"
+    sql: |
+      SELECT
+        ua.full_name,
+        ua.username,
+        ua.email,
+        MAX(aa.login_time) AS last_login_time,
+        SUBSTRING_INDEX(
+          GROUP_CONCAT(aa.result ORDER BY aa.login_time DESC),
+          ',',
+          1
+        ) AS last_result
+      FROM user_accounts ua
+      LEFT JOIN auth_attempts aa ON aa.user_id = ua.id
+      GROUP BY ua.id, ua.full_name, ua.username, ua.email
+      ORDER BY ua.id;
+
+  - id: "successful_vs_failed_logins"
+    title: "Successful vs Failed Logins"
+    type: "bar"
+    label_column: "result"
+    value_column: "count"
+    sql: |
+      SELECT result, COUNT(*) AS count
+      FROM auth_attempts
+      GROUP BY result
+      ORDER BY result;
+
+  - id: "top_browsers_used"
+    title: "Top Browsers Used"
+    type: "bar"
+    label_column: "browser"
+    value_column: "count"
+    sql: |
+      SELECT uai.browser, COUNT(*) AS count
+      FROM user_agent_info uai
+      GROUP BY uai.browser
+      ORDER BY count DESC, browser ASC;
+
+  - id: "top_countries_logged_in_from"
+    title: "Top Countries Logged in From"
+    type: "bar"
+    label_column: "country"
+    value_column: "count"
+    sql: |
+      SELECT uai.country, COUNT(*) AS count
+      FROM user_agent_info uai
+      GROUP BY uai.country
+      ORDER BY count DESC, country ASC;
