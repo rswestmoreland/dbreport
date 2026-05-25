@@ -185,9 +185,13 @@ Run the optional integration smoke test to validate end-to-end report generation
 ./scripts/integration_mariadb_smoke.sh
 ```
 
-The script prefers Docker, falls back to a reachable local MariaDB instance, and otherwise exits with a clear skip message.
+The script prefers a local MariaDB runtime first, falls back to Docker, and otherwise exits with a clear skip message.
+
+Run the smoke test with `DBREPORT_KEEP_SAMPLE_REPORT=1` to save a real generated sample report to `docs/assets/sample-report.html`. The sample data is fake and uses non-real domains such as `example.invalid`, `test.invalid`, and `corp.invalid`.
 
 ![Sample dbreport HTML report](docs/assets/sample-report.svg)
+
+Open the saved HTML sample directly: [docs/assets/sample-report.html](docs/assets/sample-report.html).
 
 ## Build
 

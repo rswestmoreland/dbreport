@@ -16,6 +16,8 @@ CONTAINER_NAME="dbreport-smoke-mariadb-$RANDOM"
 MARIADB_IMAGE="mariadb:11"
 REPORT_PATH="$WORK_DIR/report.html"
 REPORT_OUTPUT_DIR="/tmp/dbreport-smoke"
+KEEP_SAMPLE_REPORT="${DBREPORT_KEEP_SAMPLE_REPORT:-0}"
+DOC_SAMPLE_REPORT="$ROOT_DIR/docs/assets/sample-report.html"
 
 SCHEMA_FILE="$ROOT_DIR/examples/auth-login-schema.sql"
 SEED_FILE="$ROOT_DIR/examples/auth-login-seed.sql"
@@ -176,6 +178,12 @@ grep -q "<svg" "$REPORT_PATH"
 if grep -Eqi 'https?://|<script|\bsrc=|\bhref=' "$REPORT_PATH"; then
   log "report contains disallowed external/script references"
   exit 1
+fi
+
+if [[ "$KEEP_SAMPLE_REPORT" == "1" ]]; then
+  mkdir -p "$(dirname "$DOC_SAMPLE_REPORT")"
+  cp "$REPORT_PATH" "$DOC_SAMPLE_REPORT"
+  log "Saved sample report to $DOC_SAMPLE_REPORT"
 fi
 
 log "MariaDB integration smoke test passed ($MODE mode)."
