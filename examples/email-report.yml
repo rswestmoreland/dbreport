@@ -1,0 +1,47 @@
+title: "Daily Email Report"
+
+output:
+  html: "reports/daily.html"
+
+database:
+  host: "127.0.0.1"
+  port: 3306
+  name: "appdb"
+  user_env: "DBREPORT_DB_USER"
+  password_env: "DBREPORT_DB_PASSWORD"
+  timeout_seconds: 10
+  tls: false
+
+limits:
+  max_rows_per_query: 1000
+
+email:
+  enabled: true
+  smtp_host: "smtp.example.com"
+  smtp_port: 587
+  starttls: true
+  username_env: "DBREPORT_SMTP_USER"
+  password_env: "DBREPORT_SMTP_PASSWORD"
+  from: "reports@example.com"
+  to:
+    - "ops@example.com"
+  subject: "Daily MariaDB Summary"
+  send_html_body: true
+  attach_html: false
+
+queries:
+  - id: "total_items"
+    title: "Total Items"
+    type: "metric"
+    sql: |
+      SELECT COUNT(*) AS value
+      FROM items
+
+  - id: "recent_items"
+    title: "Recent Items"
+    type: "table"
+    sql: |
+      SELECT id, created_at
+      FROM items
+      ORDER BY created_at DESC
+      LIMIT 25

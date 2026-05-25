@@ -1,0 +1,73 @@
+package config
+
+const SampleYAML = `title: "Daily MariaDB Summary"
+
+output:
+  html: "report.html"
+
+database:
+  host: "127.0.0.1"
+  port: 3306
+  name: "appdb"
+  user_env: "DBREPORT_DB_USER"
+  password_env: "DBREPORT_DB_PASSWORD"
+  timeout_seconds: 10
+  tls: false
+
+limits:
+  max_rows_per_query: 1000
+
+email:
+  enabled: false
+  smtp_host: "smtp.example.com"
+  smtp_port: 587
+  starttls: true
+  username_env: "DBREPORT_SMTP_USER"
+  password_env: "DBREPORT_SMTP_PASSWORD"
+  from: "reports@example.com"
+  to:
+    - "ops@example.com"
+  subject: "Daily MariaDB Summary"
+  send_html_body: true
+  attach_html: false
+
+queries:
+  - id: "total_orders"
+    title: "Total Orders"
+    type: "metric"
+    sql: |
+      SELECT COUNT(*) AS value
+      FROM orders
+
+  - id: "orders_by_status"
+    title: "Orders by Status"
+    type: "bar"
+    label_column: "status"
+    value_column: "count"
+    sql: |
+      SELECT status, COUNT(*) AS count
+      FROM orders
+      GROUP BY status
+      ORDER BY count DESC
+
+  - id: "daily_orders"
+    title: "Daily Orders"
+    type: "line"
+    label_column: "day"
+    value_column: "count"
+    sql: |
+      SELECT DATE(created_at) AS day, COUNT(*) AS count
+      FROM orders
+      WHERE created_at >= NOW() - INTERVAL 30 DAY
+      GROUP BY DATE(created_at)
+      ORDER BY day
+
+  - id: "recent_orders"
+    title: "Recent Orders"
+    type: "table"
+    sql: |
+      SELECT id, status, created_at
+      FROM orders
+      ORDER BY created_at DESC
+      LIMIT 25
+`

@@ -1,0 +1,27 @@
+title: "Minimal MariaDB Summary"
+
+output:
+  html: "report.html"
+
+database:
+  host: "127.0.0.1"
+  port: 3306
+  name: "appdb"
+  user_env: "DBREPORT_DB_USER"
+  password_env: "DBREPORT_DB_PASSWORD"
+  timeout_seconds: 10
+  tls: false
+
+limits:
+  max_rows_per_query: 1000
+
+email:
+  enabled: false
+
+queries:
+  - id: "row_count"
+    title: "Total Rows"
+    type: "metric"
+    sql: |
+      SELECT COUNT(*) AS value
+      FROM some_table

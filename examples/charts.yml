@@ -1,0 +1,43 @@
+title: "Chart Examples"
+
+output:
+  html: "reports/charts.html"
+
+database:
+  host: "127.0.0.1"
+  port: 3306
+  name: "appdb"
+  user_env: "DBREPORT_DB_USER"
+  password_env: "DBREPORT_DB_PASSWORD"
+  timeout_seconds: 10
+  tls: false
+
+limits:
+  max_rows_per_query: 1000
+
+email:
+  enabled: false
+
+queries:
+  - id: "items_by_status"
+    title: "Items by Status"
+    type: "bar"
+    label_column: "status"
+    value_column: "count"
+    sql: |
+      SELECT status, COUNT(*) AS count
+      FROM items
+      GROUP BY status
+      ORDER BY count DESC
+
+  - id: "items_by_day"
+    title: "Items by Day"
+    type: "line"
+    label_column: "day"
+    value_column: "count"
+    sql: |
+      SELECT DATE(created_at) AS day, COUNT(*) AS count
+      FROM items
+      WHERE created_at >= NOW() - INTERVAL 30 DAY
+      GROUP BY DATE(created_at)
+      ORDER BY day

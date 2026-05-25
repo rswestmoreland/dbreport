@@ -1,0 +1,26 @@
+# Build artifacts
+/dbreport
+/dist/
+/build/
+/release/
+
+# Go
+/bin/
+/vendor/
+
+# Coverage and test output
+*.out
+coverage.html
+
+# Local environment
+.env
+.env.*
+*.local
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
