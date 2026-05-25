@@ -49,6 +49,30 @@ queries:
       FROM auth_attempts
       WHERE result = 'success';
 
+  - id: "daily_successful_logins"
+    title: "Daily Successful Logins"
+    type: "line"
+    label_column: "day"
+    value_column: "count"
+    sql: |
+      SELECT DATE(login_time) AS day, COUNT(*) AS count
+      FROM auth_attempts
+      WHERE result = 'success'
+      GROUP BY DATE(login_time)
+      ORDER BY day;
+
+  - id: "daily_failed_logins"
+    title: "Daily Failed Logins"
+    type: "line"
+    label_column: "day"
+    value_column: "count"
+    sql: |
+      SELECT DATE(login_time) AS day, COUNT(*) AS count
+      FROM auth_attempts
+      WHERE result = 'failure'
+      GROUP BY DATE(login_time)
+      ORDER BY day;
+
   - id: "last_logins_by_user"
     title: "Last Logins by User"
     type: "table"
@@ -58,15 +82,12 @@ queries:
         ua.username,
         ua.email,
         MAX(aa.login_time) AS last_login_time,
-        SUBSTRING_INDEX(
-          GROUP_CONCAT(aa.result ORDER BY aa.login_time DESC),
-          ',',
-          1
-        ) AS last_result
+        SUBSTRING_INDEX(GROUP_CONCAT(aa.result ORDER BY aa.login_time DESC), ',', 1) AS last_result
       FROM user_accounts ua
       LEFT JOIN auth_attempts aa ON aa.user_id = ua.id
       GROUP BY ua.id, ua.full_name, ua.username, ua.email
-      ORDER BY ua.id;
+      ORDER BY last_login_time DESC
+      LIMIT 20;
 
   - id: "successful_vs_failed_logins"
     title: "Successful vs Failed Logins"
@@ -77,7 +98,16 @@ queries:
       SELECT result, COUNT(*) AS count
       FROM auth_attempts
       GROUP BY result
-      ORDER BY result;
+      ORDER BY count DESC, result ASC;
+
+  - id: "login_results_by_reason"
+    title: "Login Results by Reason"
+    type: "table"
+    sql: |
+      SELECT result, reason, COUNT(*) AS count
+      FROM auth_attempts
+      GROUP BY result, reason
+      ORDER BY result ASC, count DESC, reason ASC;
 
   - id: "top_browsers_used"
     title: "Top Browsers Used"

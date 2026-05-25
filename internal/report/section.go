@@ -79,7 +79,7 @@ func metricValue(result dbreportdb.Result) (string, string) {
 
 func formatDuration(value time.Duration) string {
 	if value < time.Millisecond {
-		return value.String()
+		return strings.ReplaceAll(value.String(), "µ", "u")
 	}
-	return value.Round(time.Millisecond).String()
+	return strings.ReplaceAll(value.Round(time.Millisecond).String(), "µ", "u")
 }

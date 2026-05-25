@@ -43,36 +43,18 @@
       letter-spacing: -0.02em;
     }
     .header p { margin: 0; color: #d6deeb; }
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-      margin: 22px 0;
-    }
-    .summary-card, .section {
+     .section {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
       box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
     }
-    .summary-card { padding: 18px; }
-    .summary-label {
-      color: var(--muted);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-    .summary-value {
-      margin-top: 6px;
-      font-size: 26px;
-      font-weight: 700;
-    }
-    .section {
-      margin-top: 18px;
+         .section {
+      margin-top: 14px;
       overflow: hidden;
     }
-    .section-header {
-      padding: 20px 22px 12px;
+     .section-header {
+      padding: 14px 18px 8px;
       border-bottom: 1px solid var(--border);
     }
     .section-header h2 {
@@ -85,9 +67,11 @@
       color: var(--muted);
       font-size: 12px;
     }
-    .section-body { padding: 20px 22px 22px; }
+    .section-body { padding: 10px 18px 14px; }
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 10px; margin-top: 14px; }
+    .metric-tile { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; box-shadow: 0 6px 14px rgba(15,23,42,.04); }
     .metric-value {
-      font-size: 42px;
+      font-size: 28px;
       font-weight: 750;
       letter-spacing: -0.03em;
     }
@@ -130,7 +114,7 @@
       width: 100%;
       height: auto;
       display: block;
-      margin-bottom: 16px;
+      margin: 2px 0 8px;
     }
     .chart-bg { fill: #fbfcfe; stroke: #d9e0ea; }
     .chart-label, .chart-value, .chart-tick, .chart-empty-text {
@@ -150,13 +134,12 @@
     }
     .chart-point { fill: #fff; stroke: var(--accent); stroke-width: 2; }
     .footer {
-      margin-top: 28px;
+      margin-top: 20px;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
       text-align: center;
     }
     @media (max-width: 720px) {
-      .summary { grid-template-columns: 1fr; }
       .header { border-radius: 14px; }
       .metric-value { font-size: 34px; }
     }
@@ -172,85 +155,138 @@
   <main class="page">
     <header class="header">
       <h1>Authentication Login Activity Report</h1>
-      <p>Generated 2026-05-25 19:58:08</p>
+      <p>Generated 2026-05-25 20:58:29</p>
     </header>
 
-    <section class="summary" aria-label="Report summary">
-      <div class="summary-card">
-        <div class="summary-label">Queries</div>
-        <div class="summary-value">8</div>
+    
+    
+    <section class="metric-grid">
+      
+      <div class="metric-tile section" id="total_users">
+        <div class="metric-value">24</div>
+        <div class="metric-label">Total Users</div>
       </div>
-      <div class="summary-card">
-        <div class="summary-label">Rows</div>
-        <div class="summary-value">44</div>
+      
+      <div class="metric-tile section" id="total_login_attempts">
+        <div class="metric-value">210</div>
+        <div class="metric-label">Total Login Attempts</div>
       </div>
-      <div class="summary-card">
-        <div class="summary-label">Runtime</div>
-        <div class="summary-value">5ms</div>
+      
+      <div class="metric-tile section" id="failed_login_count">
+        <div class="metric-value">60</div>
+        <div class="metric-label">Failed Login Count</div>
       </div>
+      
+      <div class="metric-tile section" id="successful_login_count">
+        <div class="metric-value">150</div>
+        <div class="metric-label">Successful Login Count</div>
+      </div>
+      
     </section>
+    
+    
+    
+    
+    <section class="section" id="daily_successful_logins">
+      <div class="section-header">
+        <h2>Daily Successful Logins</h2>
+        <div class="meta">line section - 9 rows - 415.056us</div>
+      </div>
+      <div class="section-body">
+        
+          <svg class="chart chart-line" viewBox="0 0 720 260" role="img" aria-label="Daily Successful Logins"><rect class="chart-bg" x="0" y="0" width="100%" height="100%" rx="10"></rect><line class="chart-axis" x1="54" y1="208" x2="688" y2="208"></line><line class="chart-axis" x1="54" y1="24" x2="54" y2="208"></line><text class="chart-tick" x="12" y="36">18</text><text class="chart-tick" x="12" y="208">13</text><polyline class="chart-line-path" points="54,61 133,24 213,61 292,61 371,61 450,61 530,61 609,61 688,208"></polyline><circle class="chart-point" cx="54" cy="61" r="4"></circle><circle class="chart-point" cx="133" cy="24" r="4"></circle><circle class="chart-point" cx="213" cy="61" r="4"></circle><circle class="chart-point" cx="292" cy="61" r="4"></circle><circle class="chart-point" cx="371" cy="61" r="4"></circle><circle class="chart-point" cx="450" cy="61" r="4"></circle><circle class="chart-point" cx="530" cy="61" r="4"></circle><circle class="chart-point" cx="609" cy="61" r="4"></circle><circle class="chart-point" cx="688" cy="208" r="4"></circle><text class="chart-label" x="54" y="242">Latest: 2026-02-09 00:00:00 = 13</text></svg>
+          
+  
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>day</th><th>count</th></tr>
+        </thead>
+        <tbody>
+          
+            <tr><td>2026-02-01 00:00:00</td><td>17</td></tr>
+          
+            <tr><td>2026-02-02 00:00:00</td><td>18</td></tr>
+          
+            <tr><td>2026-02-03 00:00:00</td><td>17</td></tr>
+          
+            <tr><td>2026-02-04 00:00:00</td><td>17</td></tr>
+          
+            <tr><td>2026-02-05 00:00:00</td><td>17</td></tr>
+          
+            <tr><td>2026-02-06 00:00:00</td><td>17</td></tr>
+          
+            <tr><td>2026-02-07 00:00:00</td><td>17</td></tr>
+          
+            <tr><td>2026-02-08 00:00:00</td><td>17</td></tr>
+          
+            <tr><td>2026-02-09 00:00:00</td><td>13</td></tr>
+          
+        </tbody>
+      </table>
+    </div>
+  
 
-    
-    <section class="section" id="total_users">
-      <div class="section-header">
-        <h2>Total Users</h2>
-        <div class="meta">metric section &middot; 1 rows &middot; 666.155us</div>
-      </div>
-      <div class="section-body">
-        
-          <div class="metric-value">24</div>
-          <div class="metric-label">value</div>
         
         
       </div>
     </section>
     
-    <section class="section" id="total_login_attempts">
+    
+    
+    
+    <section class="section" id="daily_failed_logins">
       <div class="section-header">
-        <h2>Total Login Attempts</h2>
-        <div class="meta">metric section &middot; 1 rows &middot; 255.999us</div>
+        <h2>Daily Failed Logins</h2>
+        <div class="meta">line section - 9 rows - 384.604us</div>
       </div>
       <div class="section-body">
         
-          <div class="metric-value">240</div>
-          <div class="metric-label">value</div>
+          <svg class="chart chart-line" viewBox="0 0 720 260" role="img" aria-label="Daily Failed Logins"><rect class="chart-bg" x="0" y="0" width="100%" height="100%" rx="10"></rect><line class="chart-axis" x1="54" y1="208" x2="688" y2="208"></line><line class="chart-axis" x1="54" y1="24" x2="54" y2="208"></line><text class="chart-tick" x="12" y="36">7</text><text class="chart-tick" x="12" y="208">5</text><polyline class="chart-line-path" points="54,24 133,116 213,24 292,24 371,24 450,24 530,24 609,24 688,208"></polyline><circle class="chart-point" cx="54" cy="24" r="4"></circle><circle class="chart-point" cx="133" cy="116" r="4"></circle><circle class="chart-point" cx="213" cy="24" r="4"></circle><circle class="chart-point" cx="292" cy="24" r="4"></circle><circle class="chart-point" cx="371" cy="24" r="4"></circle><circle class="chart-point" cx="450" cy="24" r="4"></circle><circle class="chart-point" cx="530" cy="24" r="4"></circle><circle class="chart-point" cx="609" cy="24" r="4"></circle><circle class="chart-point" cx="688" cy="208" r="4"></circle><text class="chart-label" x="54" y="242">Latest: 2026-02-09 00:00:00 = 5</text></svg>
+          
+  
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>day</th><th>count</th></tr>
+        </thead>
+        <tbody>
+          
+            <tr><td>2026-02-01 00:00:00</td><td>7</td></tr>
+          
+            <tr><td>2026-02-02 00:00:00</td><td>6</td></tr>
+          
+            <tr><td>2026-02-03 00:00:00</td><td>7</td></tr>
+          
+            <tr><td>2026-02-04 00:00:00</td><td>7</td></tr>
+          
+            <tr><td>2026-02-05 00:00:00</td><td>7</td></tr>
+          
+            <tr><td>2026-02-06 00:00:00</td><td>7</td></tr>
+          
+            <tr><td>2026-02-07 00:00:00</td><td>7</td></tr>
+          
+            <tr><td>2026-02-08 00:00:00</td><td>7</td></tr>
+          
+            <tr><td>2026-02-09 00:00:00</td><td>5</td></tr>
+          
+        </tbody>
+      </table>
+    </div>
+  
+
         
         
       </div>
     </section>
     
-    <section class="section" id="failed_login_count">
-      <div class="section-header">
-        <h2>Failed Login Count</h2>
-        <div class="meta">metric section &middot; 1 rows &middot; 271.055us</div>
-      </div>
-      <div class="section-body">
-        
-          <div class="metric-value">65</div>
-          <div class="metric-label">value</div>
-        
-        
-      </div>
-    </section>
     
-    <section class="section" id="successful_login_count">
-      <div class="section-header">
-        <h2>Successful Login Count</h2>
-        <div class="meta">metric section &middot; 1 rows &middot; 506.922us</div>
-      </div>
-      <div class="section-body">
-        
-          <div class="metric-value">175</div>
-          <div class="metric-label">value</div>
-        
-        
-      </div>
-    </section>
+    
     
     <section class="section" id="last_logins_by_user">
       <div class="section-header">
         <h2>Last Logins by User</h2>
-        <div class="meta">table section &middot; 24 rows &middot; 2ms</div>
+        <div class="meta">table section - 20 rows - 1ms</div>
       </div>
       <div class="section-body">
         
@@ -263,53 +299,45 @@
         </thead>
         <tbody>
           
-            <tr><td>Avery Holt</td><td>aholt</td><td>avery.holt@example.invalid</td><td>2026-02-28 03:00:00</td><td>success</td></tr>
+            <tr><td>Reese Monroe</td><td>rmonroe</td><td>reese.monroe@corp.example</td><td>2026-02-09 17:00:00</td><td>failure</td></tr>
           
-            <tr><td>Jordan Pike</td><td>jpike</td><td>jordan.pike@test.invalid</td><td>2026-02-28 06:00:00</td><td>success</td></tr>
+            <tr><td>Cameron Bell</td><td>cbell</td><td>cameron.bell@test.test</td><td>2026-02-09 16:00:00</td><td>success</td></tr>
           
-            <tr><td>Taylor Wynn</td><td>twynn</td><td>taylor.wynn@corp.invalid</td><td>2026-02-28 09:00:00</td><td>success</td></tr>
+            <tr><td>Dakota Flynn</td><td>dflynn</td><td>dakota.flynn@example.invalid</td><td>2026-02-09 15:00:00</td><td>success</td></tr>
           
-            <tr><td>Morgan Vale</td><td>mvale</td><td>morgan.vale@example.invalid</td><td>2026-02-28 12:00:00</td><td>failure</td></tr>
+            <tr><td>Sage Pruitt</td><td>spruitt</td><td>sage.pruitt@corp.example</td><td>2026-02-09 14:00:00</td><td>success</td></tr>
           
-            <tr><td>Riley Shaw</td><td>rshaw</td><td>riley.shaw@test.invalid</td><td>2026-02-28 15:00:00</td><td>success</td></tr>
+            <tr><td>Kendall Moss</td><td>kmoss</td><td>kendall.moss@test.test</td><td>2026-02-09 13:00:00</td><td>failure</td></tr>
           
-            <tr><td>Casey Dean</td><td>cdean</td><td>casey.dean@corp.invalid</td><td>2026-02-28 18:00:00</td><td>success</td></tr>
+            <tr><td>Finley Reeve</td><td>freeve</td><td>finley.reeve@example.invalid</td><td>2026-02-09 12:00:00</td><td>success</td></tr>
           
-            <tr><td>Quinn Hale</td><td>qhale</td><td>quinn.hale@example.invalid</td><td>2026-02-28 21:00:00</td><td>success</td></tr>
+            <tr><td>Harper Lane</td><td>hlane</td><td>harper.lane@corp.example</td><td>2026-02-09 11:00:00</td><td>success</td></tr>
           
-            <tr><td>Parker Drew</td><td>pdrew</td><td>parker.drew@test.invalid</td><td>2026-03-01</td><td>success</td></tr>
+            <tr><td>Rowan Blair</td><td>rblair</td><td>rowan.blair@test.test</td><td>2026-02-09 10:00:00</td><td>failure</td></tr>
           
-            <tr><td>Skyler Boone</td><td>sboone</td><td>skyler.boone@corp.invalid</td><td>2026-03-01 03:00:00</td><td>failure</td></tr>
+            <tr><td>Emery Knox</td><td>eknox</td><td>emery.knox@example.invalid</td><td>2026-02-09 09:00:00</td><td>success</td></tr>
           
-            <tr><td>Emery Knox</td><td>eknox</td><td>emery.knox@example.invalid</td><td>2026-03-01 06:00:00</td><td>success</td></tr>
+            <tr><td>Skyler Boone</td><td>sboone</td><td>skyler.boone@corp.example</td><td>2026-02-09 08:00:00</td><td>success</td></tr>
           
-            <tr><td>Rowan Blair</td><td>rblair</td><td>rowan.blair@test.invalid</td><td>2026-03-01 09:00:00</td><td>success</td></tr>
+            <tr><td>Parker Drew</td><td>pdrew</td><td>parker.drew@test.test</td><td>2026-02-09 07:00:00</td><td>success</td></tr>
           
-            <tr><td>Harper Lane</td><td>hlane</td><td>harper.lane@corp.invalid</td><td>2026-03-01 12:00:00</td><td>success</td></tr>
+            <tr><td>Quinn Hale</td><td>qhale</td><td>quinn.hale@example.invalid</td><td>2026-02-09 06:00:00</td><td>failure</td></tr>
           
-            <tr><td>Finley Reeve</td><td>freeve</td><td>finley.reeve@example.invalid</td><td>2026-03-01 15:00:00</td><td>success</td></tr>
+            <tr><td>Casey Dean</td><td>cdean</td><td>casey.dean@corp.example</td><td>2026-02-09 05:00:00</td><td>success</td></tr>
           
-            <tr><td>Kendall Moss</td><td>kmoss</td><td>kendall.moss@test.invalid</td><td>2026-03-01 18:00:00</td><td>failure</td></tr>
+            <tr><td>Riley Shaw</td><td>rshaw</td><td>riley.shaw@test.test</td><td>2026-02-09 04:00:00</td><td>success</td></tr>
           
-            <tr><td>Sage Pruitt</td><td>spruitt</td><td>sage.pruitt@corp.invalid</td><td>2026-03-01 21:00:00</td><td>failure</td></tr>
+            <tr><td>Morgan Vale</td><td>mvale</td><td>morgan.vale@example.invalid</td><td>2026-02-09 03:00:00</td><td>failure</td></tr>
           
-            <tr><td>Dakota Flynn</td><td>dflynn</td><td>dakota.flynn@example.invalid</td><td>2026-03-02</td><td>success</td></tr>
+            <tr><td>Taylor Wynn</td><td>twynn</td><td>taylor.wynn@corp.example</td><td>2026-02-09 02:00:00</td><td>success</td></tr>
           
-            <tr><td>Cameron Bell</td><td>cbell</td><td>cameron.bell@test.invalid</td><td>2026-03-02 03:00:00</td><td>success</td></tr>
+            <tr><td>Jordan Pike</td><td>jpike</td><td>jordan.pike@test.test</td><td>2026-02-09 01:00:00</td><td>success</td></tr>
           
-            <tr><td>Reese Monroe</td><td>rmonroe</td><td>reese.monroe@corp.invalid</td><td>2026-03-02 06:00:00</td><td>success</td></tr>
+            <tr><td>Avery Holt</td><td>aholt</td><td>avery.holt@example.invalid</td><td>2026-02-09 00:00:00</td><td>success</td></tr>
           
-            <tr><td>Alex Mercer</td><td>amercer</td><td>alex.mercer@example.invalid</td><td>2026-03-02 09:00:00</td><td>failure</td></tr>
+            <tr><td>Noel Quinn</td><td>nquinn</td><td>noel.quinn@corp.example</td><td>2026-02-08 23:00:00</td><td>failure</td></tr>
           
-            <tr><td>Bailey Stone</td><td>bstone</td><td>bailey.stone@test.invalid</td><td>2026-03-02 12:00:00</td><td>success</td></tr>
-          
-            <tr><td>Phoenix Clarke</td><td>pclarke</td><td>phoenix.clarke@corp.invalid</td><td>2026-03-02 15:00:00</td><td>success</td></tr>
-          
-            <tr><td>Jules Hart</td><td>jhart</td><td>jules.hart@example.invalid</td><td>2026-03-02 18:00:00</td><td>success</td></tr>
-          
-            <tr><td>Remy Cross</td><td>rcross</td><td>remy.cross@test.invalid</td><td>2026-03-02 21:00:00</td><td>success</td></tr>
-          
-            <tr><td>Noel Quinn</td><td>nquinn</td><td>noel.quinn@corp.invalid</td><td>2026-03-03</td><td>failure</td></tr>
+            <tr><td>Remy Cross</td><td>rcross</td><td>remy.cross@test.test</td><td>2026-02-08 22:00:00</td><td>success</td></tr>
           
         </tbody>
       </table>
@@ -321,14 +349,17 @@
       </div>
     </section>
     
+    
+    
+    
     <section class="section" id="successful_vs_failed_logins">
       <div class="section-header">
         <h2>Successful vs Failed Logins</h2>
-        <div class="meta">bar section &middot; 2 rows &middot; 419.737us</div>
+        <div class="meta">bar section - 2 rows - 311.244us</div>
       </div>
       <div class="section-body">
         
-          <svg class="chart chart-bar" viewBox="0 0 720 120" role="img" aria-label="Successful vs Failed Logins"><rect class="chart-bg" x="0" y="0" width="100%" height="100%" rx="10"></rect><text class="chart-label" x="16" y="50">success</text><rect class="chart-bar-fill" x="150" y="32" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="48">175</text><text class="chart-label" x="16" y="86">failure</text><rect class="chart-bar-fill" x="150" y="68" width="198" height="20" rx="4"></rect><text class="chart-value" x="356" y="84">65</text></svg>
+          <svg class="chart chart-bar" viewBox="0 0 720 120" role="img" aria-label="Successful vs Failed Logins"><rect class="chart-bg" x="0" y="0" width="100%" height="100%" rx="10"></rect><text class="chart-label" x="16" y="50">success</text><rect class="chart-bar-fill" x="150" y="32" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="48">150</text><text class="chart-label" x="16" y="86">failure</text><rect class="chart-bar-fill" x="150" y="68" width="214" height="20" rx="4"></rect><text class="chart-value" x="372" y="84">60</text></svg>
           
   
     <div class="table-wrap">
@@ -338,9 +369,9 @@
         </thead>
         <tbody>
           
-            <tr><td>success</td><td>175</td></tr>
+            <tr><td>success</td><td>150</td></tr>
           
-            <tr><td>failure</td><td>65</td></tr>
+            <tr><td>failure</td><td>60</td></tr>
           
         </tbody>
       </table>
@@ -352,14 +383,54 @@
       </div>
     </section>
     
-    <section class="section" id="top_browsers_used">
+    
+    
+    
+    <section class="section" id="login_results_by_reason">
       <div class="section-header">
-        <h2>Top Browsers Used</h2>
-        <div class="meta">bar section &middot; 6 rows &middot; 425.045us</div>
+        <h2>Login Results by Reason</h2>
+        <div class="meta">table section - 4 rows - 516.893us</div>
       </div>
       <div class="section-body">
         
-          <svg class="chart chart-bar" viewBox="0 0 720 264" role="img" aria-label="Top Browsers Used"><rect class="chart-bg" x="0" y="0" width="100%" height="100%" rx="10"></rect><text class="chart-label" x="16" y="50">Brave</text><rect class="chart-bar-fill" x="150" y="32" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="48">40</text><text class="chart-label" x="16" y="86">Chrome</text><rect class="chart-bar-fill" x="150" y="68" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="84">40</text><text class="chart-label" x="16" y="122">Edge</text><rect class="chart-bar-fill" x="150" y="104" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="120">40</text><text class="chart-label" x="16" y="158">Firefox</text><rect class="chart-bar-fill" x="150" y="140" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="156">40</text><text class="chart-label" x="16" y="194">Opera</text><rect class="chart-bar-fill" x="150" y="176" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="192">40</text><text class="chart-label" x="16" y="230">Safari</text><rect class="chart-bar-fill" x="150" y="212" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="228">40</text></svg>
+          
+  
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>result</th><th>reason</th><th>count</th></tr>
+        </thead>
+        <tbody>
+          
+            <tr><td>success</td><td>authenticated</td><td>150</td></tr>
+          
+            <tr><td>failure</td><td>bad password</td><td>20</td></tr>
+          
+            <tr><td>failure</td><td>locked account</td><td>20</td></tr>
+          
+            <tr><td>failure</td><td>non-existent username</td><td>20</td></tr>
+          
+        </tbody>
+      </table>
+    </div>
+  
+
+        
+        
+      </div>
+    </section>
+    
+    
+    
+    
+    <section class="section" id="top_browsers_used">
+      <div class="section-header">
+        <h2>Top Browsers Used</h2>
+        <div class="meta">bar section - 6 rows - 343.836us</div>
+      </div>
+      <div class="section-body">
+        
+          <svg class="chart chart-bar" viewBox="0 0 720 264" role="img" aria-label="Top Browsers Used"><rect class="chart-bg" x="0" y="0" width="100%" height="100%" rx="10"></rect><text class="chart-label" x="16" y="50">Chrome</text><rect class="chart-bar-fill" x="150" y="32" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="48">105</text><text class="chart-label" x="16" y="86">Opera</text><rect class="chart-bar-fill" x="150" y="68" width="310" height="20" rx="4"></rect><text class="chart-value" x="468" y="84">61</text><text class="chart-label" x="16" y="122">Safari</text><rect class="chart-bar-fill" x="150" y="104" width="107" height="20" rx="4"></rect><text class="chart-value" x="265" y="120">21</text><text class="chart-label" x="16" y="158">Firefox</text><rect class="chart-bar-fill" x="150" y="140" width="61" height="20" rx="4"></rect><text class="chart-value" x="219" y="156">12</text><text class="chart-label" x="16" y="194">Edge</text><rect class="chart-bar-fill" x="150" y="176" width="36" height="20" rx="4"></rect><text class="chart-value" x="194" y="192">7</text><text class="chart-label" x="16" y="230">Brave</text><rect class="chart-bar-fill" x="150" y="212" width="20" height="20" rx="4"></rect><text class="chart-value" x="178" y="228">4</text></svg>
           
   
     <div class="table-wrap">
@@ -369,17 +440,17 @@
         </thead>
         <tbody>
           
-            <tr><td>Brave</td><td>40</td></tr>
+            <tr><td>Chrome</td><td>105</td></tr>
           
-            <tr><td>Chrome</td><td>40</td></tr>
+            <tr><td>Opera</td><td>61</td></tr>
           
-            <tr><td>Edge</td><td>40</td></tr>
+            <tr><td>Safari</td><td>21</td></tr>
           
-            <tr><td>Firefox</td><td>40</td></tr>
+            <tr><td>Firefox</td><td>12</td></tr>
           
-            <tr><td>Opera</td><td>40</td></tr>
+            <tr><td>Edge</td><td>7</td></tr>
           
-            <tr><td>Safari</td><td>40</td></tr>
+            <tr><td>Brave</td><td>4</td></tr>
           
         </tbody>
       </table>
@@ -391,14 +462,17 @@
       </div>
     </section>
     
+    
+    
+    
     <section class="section" id="top_countries_logged_in_from">
       <div class="section-header">
         <h2>Top Countries Logged in From</h2>
-        <div class="meta">bar section &middot; 8 rows &middot; 437.742us</div>
+        <div class="meta">bar section - 7 rows - 362.491us</div>
       </div>
       <div class="section-body">
         
-          <svg class="chart chart-bar" viewBox="0 0 720 336" role="img" aria-label="Top Countries Logged in From"><rect class="chart-bg" x="0" y="0" width="100%" height="100%" rx="10"></rect><text class="chart-label" x="16" y="50">Australia</text><rect class="chart-bar-fill" x="150" y="32" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="48">30</text><text class="chart-label" x="16" y="86">Brazil</text><rect class="chart-bar-fill" x="150" y="68" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="84">30</text><text class="chart-label" x="16" y="122">Canada</text><rect class="chart-bar-fill" x="150" y="104" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="120">30</text><text class="chart-label" x="16" y="158">Germany</text><rect class="chart-bar-fill" x="150" y="140" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="156">30</text><text class="chart-label" x="16" y="194">India</text><rect class="chart-bar-fill" x="150" y="176" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="192">30</text><text class="chart-label" x="16" y="230">Japan</text><rect class="chart-bar-fill" x="150" y="212" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="228">30</text><text class="chart-label" x="16" y="266">South Africa</text><rect class="chart-bar-fill" x="150" y="248" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="264">30</text><text class="chart-label" x="16" y="302">United States</text><rect class="chart-bar-fill" x="150" y="284" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="300">30</text></svg>
+          <svg class="chart chart-bar" viewBox="0 0 720 300" role="img" aria-label="Top Countries Logged in From"><rect class="chart-bg" x="0" y="0" width="100%" height="100%" rx="10"></rect><text class="chart-label" x="16" y="50">Australia</text><rect class="chart-bar-fill" x="150" y="32" width="534" height="20" rx="4"></rect><text class="chart-value" x="692" y="48">105</text><text class="chart-label" x="16" y="86">United States</text><rect class="chart-bar-fill" x="150" y="68" width="209" height="20" rx="4"></rect><text class="chart-value" x="367" y="84">41</text><text class="chart-label" x="16" y="122">Canada</text><rect class="chart-bar-fill" x="150" y="104" width="178" height="20" rx="4"></rect><text class="chart-value" x="336" y="120">35</text><text class="chart-label" x="16" y="158">Japan</text><rect class="chart-bar-fill" x="150" y="140" width="71" height="20" rx="4"></rect><text class="chart-value" x="229" y="156">14</text><text class="chart-label" x="16" y="194">Germany</text><rect class="chart-bar-fill" x="150" y="176" width="41" height="20" rx="4"></rect><text class="chart-value" x="199" y="192">8</text><text class="chart-label" x="16" y="230">India</text><rect class="chart-bar-fill" x="150" y="212" width="25" height="20" rx="4"></rect><text class="chart-value" x="183" y="228">5</text><text class="chart-label" x="16" y="266">Brazil</text><rect class="chart-bar-fill" x="150" y="248" width="10" height="20" rx="4"></rect><text class="chart-value" x="168" y="264">2</text></svg>
           
   
     <div class="table-wrap">
@@ -408,21 +482,19 @@
         </thead>
         <tbody>
           
-            <tr><td>Australia</td><td>30</td></tr>
+            <tr><td>Australia</td><td>105</td></tr>
           
-            <tr><td>Brazil</td><td>30</td></tr>
+            <tr><td>United States</td><td>41</td></tr>
           
-            <tr><td>Canada</td><td>30</td></tr>
+            <tr><td>Canada</td><td>35</td></tr>
           
-            <tr><td>Germany</td><td>30</td></tr>
+            <tr><td>Japan</td><td>14</td></tr>
           
-            <tr><td>India</td><td>30</td></tr>
+            <tr><td>Germany</td><td>8</td></tr>
           
-            <tr><td>Japan</td><td>30</td></tr>
+            <tr><td>India</td><td>5</td></tr>
           
-            <tr><td>South Africa</td><td>30</td></tr>
-          
-            <tr><td>United States</td><td>30</td></tr>
+            <tr><td>Brazil</td><td>2</td></tr>
           
         </tbody>
       </table>
@@ -434,9 +506,10 @@
       </div>
     </section>
     
+    
 
     <footer class="footer">
-      Generated by dbreport 0.1.0-dev &middot; Build unknown &middot; unknown
+      Generated by dbreport 0.1.0-alpha.1 - Build d87592a - 2026-05-25 - Queries: 11 - Rows: 61 - Runtime: 6ms
     </footer>
   </main>
 </body>

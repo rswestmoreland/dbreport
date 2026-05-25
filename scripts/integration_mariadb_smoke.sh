@@ -160,7 +160,10 @@ else
 fi
 
 cd "$ROOT_DIR"
-go build -o "$WORK_DIR/dbreport" ./cmd/dbreport
+SAMPLE_VERSION="0.1.0-alpha.1"
+SAMPLE_COMMIT="$(git rev-parse --short HEAD)"
+SAMPLE_DATE="$(date -u +%Y-%m-%d)"
+go build -ldflags="-X 'github.com/rswestmoreland/dbreport/internal/version.Version=${SAMPLE_VERSION}' -X 'github.com/rswestmoreland/dbreport/internal/version.Commit=${SAMPLE_COMMIT}' -X 'github.com/rswestmoreland/dbreport/internal/version.Date=${SAMPLE_DATE}'" -o "$WORK_DIR/dbreport" ./cmd/dbreport
 
 "$WORK_DIR/dbreport" check --config "$REPORT_CONFIG"
 "$WORK_DIR/dbreport" run --config "$REPORT_CONFIG" --output "$REPORT_PATH"

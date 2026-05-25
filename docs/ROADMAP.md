@@ -12,7 +12,7 @@ single-binary MariaDB reporting utility, not a full BI platform.
 - Optional SMTP email delivery.
 - Release packaging scripts.
 
-## Candidate near-term hardening
+## Candidate near-term hardening (targeting v0.1.0-alpha.1)
 
 - Complete external build and test validation.
 - [x] Optional integration smoke test script for temporary Docker/local MariaDB is available.
