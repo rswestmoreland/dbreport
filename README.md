@@ -1,37 +1,36 @@
 # dbreport
 
-`dbreport` is a small command-line utility for generating clean, self-contained
-HTML reports from MariaDB queries.
+`dbreport` is a small Go command-line tool that runs MariaDB queries and turns
+results into self-contained HTML reports.
 
-It is designed for simple operational reporting where a full web application,
-BI platform, scheduler, or PDF renderer would be unnecessary.
+It fits teams that need dependable operational reports without standing up a
+web app, BI platform, or PDF pipeline. A report is driven by YAML config and can
+be generated on demand or from schedulers such as cron.
 
-## Goals
+Common use cases include daily operational snapshots, login and auth trend
+monitoring, support and incident summaries, and lightweight stakeholder status
+reports.
 
-- Single Go binary.
-- YAML report configuration.
-- MariaDB queries from config files.
-- Clean self-contained HTML output.
-- Inline CSS and inline SVG charts.
-- Optional SMTP email delivery.
-- No external runtime dependencies beyond the binary, config file, and
-  environment variables.
-- Secrets loaded from environment variables, not command-line arguments.
-- No arbitrary SQL from the command line.
+## What dbreport does
 
-## Features
+- Connects to MariaDB using `database/sql`.
+- Executes configured read-oriented queries with guardrails.
+- Renders compact HTML reports with inline CSS and inline SVG.
+- Supports metric tiles, tables, bar charts, line charts, and pie charts.
+- Optionally emails the generated report over SMTP.
+- Runs as a single binary with config and environment variables.
 
-- Usage-focused help.
-- `version` command.
-- `about` command with author, license, copyright, and build metadata.
-- YAML config loading and validation.
-- MariaDB connection path using Go `database/sql`.
-- Query execution with per-query timeout.
-- Row cap enforcement.
-- Metric, table, bar chart, line chart, and pie chart report sections.
-- Self-contained HTML report rendering.
-- Optional SMTP email delivery.
-- CLI polish flags: `--quiet`, `--verbose`, `--email`, and `--no-email`.
+## Safety posture
+
+`dbreport` is designed for safe, repeatable reporting:
+
+- Query validation and reporting-focused query policy checks.
+- Per-query timeout and row-limit controls.
+- Secrets loaded from environment variables.
+- Self-contained HTML output with restrictive CSP and no external assets.
+- No arbitrary SQL execution from CLI arguments.
+
+See `docs/SECURITY.md` and `docs/SECURITY_MODEL.md` for details.
 
 ## Commands
 
@@ -63,7 +62,7 @@ export DBREPORT_DB_USER='report_user'
 export DBREPORT_DB_PASSWORD='change-me'
 ```
 
-Validate the configuration and database/query access:
+Validate configuration and DB/query access:
 
 ```sh
 dbreport check --config report.yml
@@ -75,13 +74,13 @@ Generate a report:
 dbreport run --config report.yml
 ```
 
-Generate a report and override the output path:
+Generate to a custom output path:
 
 ```sh
 dbreport run --config report.yml --output reports/daily.html
 ```
 
-Send the generated report by email:
+Send report email (optional SMTP):
 
 ```sh
 export DBREPORT_SMTP_USER='smtp-user'
@@ -89,7 +88,7 @@ export DBREPORT_SMTP_PASSWORD='smtp-password'
 dbreport run --config report.yml --email
 ```
 
-## Configuration
+## Configuration overview
 
 Primary config file name:
 
@@ -140,93 +139,61 @@ queries:
       FROM orders
 ```
 
-See `docs/CONFIGURATION.md` for the full schema.
+See `docs/CONFIGURATION.md` and `docs/REPORT_SECTIONS.md` for full schema and
+section contracts.
 
-## Report section types
+## Sample report
 
-Supported section types:
+A generated HTML sample report is included here:
 
-```text
-metric
-table
-bar
-line
-pie
-```
+`docs/assets/sample-report.html`
 
-See `docs/REPORT_SECTIONS.md` for contracts and query shape examples.
+A PNG screenshot will be added later at:
 
-## Email
+`docs/assets/sample-report.png`
 
-Email support uses Go standard-library SMTP/TLS functionality. It can send the
-HTML report as the email body, attach the generated HTML file, or both.
-
-See `docs/EMAIL.md` for SMTP config details and operational notes.
+The sample report is generated from the optional MariaDB smoke-test dataset
+using fake data and reserved example domains.
 
 ## Security notes
 
 Recommended defaults:
 
 - Use a read-only MariaDB account.
-- Use least-privilege grants for only the reporting schema/tables needed.
+- Use least-privilege grants for only required reporting tables.
 - Store DB and SMTP secrets in environment variables.
 - Do not put secrets in `report.yml`.
-- Avoid reporting sensitive fields unless the report recipients are approved to
-  receive them.
+- Avoid reporting sensitive fields unless recipients are approved.
 - Use TLS/STARTTLS where available.
-- Be careful when emailing reports outside the organization.
-
-See `docs/SECURITY.md` for more detail.
+- Be careful when emailing reports externally.
 
 ## Optional MariaDB integration smoke test
 
-Run the optional integration smoke test to validate end-to-end report generation against a temporary MariaDB instance:
+Run end-to-end report generation against a temporary MariaDB instance:
 
 ```sh
 ./scripts/integration_mariadb_smoke.sh
 ```
 
-The script prefers a local MariaDB runtime first, falls back to Docker, and otherwise exits with a clear skip message.
+The script prefers local MariaDB runtime first, falls back to Docker, or exits
+with a clear skip message.
 
-Run the smoke test with `DBREPORT_KEEP_SAMPLE_REPORT=1` to save a real generated sample report to `docs/assets/sample-report.html`. The sample data is fake and uses non-real domains with reserved TLDs such as `.invalid`, `.test`, and `.example`.
-
-A generated sample HTML report is included at:
-
-- [docs/assets/sample-report.html](docs/assets/sample-report.html)
-
-It is generated from the optional MariaDB smoke-test dataset using fake data and reserved example domains.
-
-
-The project is preparing for `v0.1.0-alpha.1` with validated smoke-test sample assets and release metadata.
-
-## Build
+To regenerate the committed sample report:
 
 ```sh
-go build -o dbreport ./cmd/dbreport
+DBREPORT_KEEP_SAMPLE_REPORT=1 ./scripts/integration_mariadb_smoke.sh
 ```
 
-Release-style build with metadata:
-
-```sh
-go build \
-  -ldflags="-X 'github.com/rswestmoreland/dbreport/internal/version.Version=0.1.0' -X 'github.com/rswestmoreland/dbreport/internal/version.Commit=$(git rev-parse --short HEAD)' -X 'github.com/rswestmoreland/dbreport/internal/version.Date=$(date -u +%Y-%m-%d)'" \
-  -o dbreport ./cmd/dbreport
-```
-
-See `docs/BUILD_RELEASE.md` and `docs/RELEASE.md` for release packaging notes.
-
-## Development validation
-
-Run in a normal Go environment with network access to download modules:
+## Build and development validation
 
 ```sh
 go mod tidy
 gofmt -w ./cmd ./internal
 go test ./...
 go build ./cmd/dbreport
+./scripts/check_release.sh
+go vet ./...
 ```
-
-The first `go mod tidy` run will create or update `go.sum`.
 
 ## License
 
@@ -236,33 +203,6 @@ Copyright (c) 2026 Richard S. Westmoreland
 
 ## Author
 
-Richard S. Westmoreland  
+Richard S. Westmoreland
+
 dev@rswestmore.land
-
-## Release packaging
-
-Release scripts are included under `scripts/`.
-
-Validate a release candidate:
-
-```sh
-./scripts/check_release.sh
-```
-
-Build release artifacts:
-
-```sh
-VERSION=0.1.0 \
-COMMIT=$(git rev-parse --short HEAD) \
-DATE=$(date -u +%Y-%m-%d) \
-./scripts/build_release.sh
-```
-
-
-- sample-report.html is the authoritative generated visual sample.
-- Report HTML head includes generator metadata and a project help link to https://github.com/rswestmoreland/dbreport; the report remains self-contained.
-
-- Security hardening: SELECT-only query policy, configurable safety filters, UTC generated timestamp, CSP meta, and NULL rendering controls.
-
-
-Safety notes: `safety.allowed_databases` and `safety.allowed_tables` are defense-in-depth controls, not a substitute for a read-only DB account. Omitted blocked lists use built-in defaults; user-specified blocked lists override defaults (no merge). One-file `report.yml` is acceptable when it contains no secrets, and a future optional split config may be added.
