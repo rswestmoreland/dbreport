@@ -204,7 +204,7 @@ func RenderPie(result dbreportdb.Result, labelColumn string, valueColumn string)
 	}
 	cx, cy, r := 190.0, 108.0, 84.0
 	colors := strings.Split(lineColors, ",")
-	start := -math.Pi / 4
+	start := -math.Pi / 2
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`<svg class="chart chart-pie" viewBox="0 0 %d 236" role="img" aria-label="%s">`, chartWidth, html.EscapeString(result.Query.Title)))
 	b.WriteString(`<rect class="chart-bg" x="0" y="0" width="100%" height="100%" rx="10"></rect>`)
@@ -214,13 +214,13 @@ func RenderPie(result dbreportdb.Result, labelColumn string, valueColumn string)
 		}
 		sweep := (p.Value / total) * 2 * math.Pi
 		x1, y1 := cx+r*math.Cos(start), cy+r*math.Sin(start)
-		end := start - sweep
+		end := start + sweep
 		x2, y2 := cx+r*math.Cos(end), cy+r*math.Sin(end)
 		large := 0
 		if sweep > math.Pi {
 			large = 1
 		}
-		b.WriteString(fmt.Sprintf(`<path d="M %.2f %.2f L %.2f %.2f A %.2f %.2f 0 %d 0 %.2f %.2f Z" fill="%s" stroke="#fbfcfe" stroke-width="2"></path>`, cx, cy, x1, y1, r, r, large, x2, y2, colors[i%len(colors)]))
+		b.WriteString(fmt.Sprintf(`<path d="M %.2f %.2f L %.2f %.2f A %.2f %.2f 0 %d 1 %.2f %.2f Z" fill="%s" stroke="#fbfcfe" stroke-width="2"></path>`, cx, cy, x1, y1, r, r, large, x2, y2, colors[i%len(colors)]))
 		start = end
 	}
 	for i, p := range points {

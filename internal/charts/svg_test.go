@@ -118,4 +118,29 @@ func TestRenderPieChart(t *testing.T) {
 	if err != nil || !strings.Contains(rendered, "chart-pie") || !strings.Contains(rendered, "success: 3") || !strings.Contains(rendered, "stroke-width=\"2\"") {
 		t.Fatalf("unexpected pie output err=%v output=%s", err, rendered)
 	}
+	if !strings.Contains(rendered, "L 190.00 24.00") {
+		t.Fatalf("expected first slice to start at top boundary, output=%s", rendered)
+	}
+	if strings.Index(rendered, "success: 3") > strings.Index(rendered, "failure: 2") {
+		t.Fatalf("expected legend to preserve query row order, output=%s", rendered)
+	}
+}
+
+func TestRenderPieRejectsNegativeValues(t *testing.T) {
+	result := dbreportdb.Result{
+		Query:   config.QueryConfig{ID: "share", Title: "Share", Type: "pie"},
+		Columns: []string{"result", "count"},
+		Rows: [][]dbreportdb.Cell{
+			{dbreportdb.ConvertCell("success"), dbreportdb.ConvertCell(int64(3))},
+			{dbreportdb.ConvertCell("failure"), dbreportdb.ConvertCell(int64(-2))},
+		},
+	}
+
+	_, err := RenderPie(result, "result", "count")
+	if err == nil {
+		t.Fatal("expected negative pie value error")
+	}
+	if !strings.Contains(err.Error(), "negative pie values") {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }

@@ -14,8 +14,7 @@ const reportTemplate = `<!doctype html>
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
   <title>{{.Title}}</title>
   <meta name="generator" content="{{.Footer.AppName}} {{.Footer.Version}}">
-  <meta name="dbreport:project" content="https://github.com/rswestmoreland/dbreport">
-  <link rel="help" href="https://github.com/rswestmoreland/dbreport">
+  <meta name="dbreport-project" content="https://github.com/rswestmoreland/dbreport">
   <style>
     :root {
       color-scheme: light;
