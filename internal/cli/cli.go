@@ -13,6 +13,7 @@ import (
 	dbreportdb "github.com/rswestmoreland/dbreport/internal/db"
 	dbreportemail "github.com/rswestmoreland/dbreport/internal/email"
 	"github.com/rswestmoreland/dbreport/internal/output"
+	"github.com/rswestmoreland/dbreport/internal/params"
 	"github.com/rswestmoreland/dbreport/internal/querypolicy"
 	"github.com/rswestmoreland/dbreport/internal/report"
 )
@@ -110,7 +111,11 @@ func (r Runner) check(args []string) int {
 	defer handle.Close()
 
 	r.verbosef(opts, "running configured queries: %d\n", len(cfg.Queries))
-	results, err := dbreportdb.RunAll(context.Background(), handle, cfg.Queries, cfg.Limits.MaxRowsPerQuery, timeout)
+	boundQueries, code := r.bindQueries(cfg, opts)
+	if code != ExitSuccess {
+		return code
+	}
+	results, err := dbreportdb.RunAll(context.Background(), handle, boundQueries, cfg.Limits.MaxRowsPerQuery, timeout)
 	if err != nil {
 		fmt.Fprintf(r.Stderr, "%s\n", err.Error())
 		return ExitQueryError
@@ -168,7 +173,11 @@ func (r Runner) run(args []string) int {
 	defer handle.Close()
 
 	r.verbosef(opts, "running configured queries: %d\n", len(cfg.Queries))
-	results, err := dbreportdb.RunAll(context.Background(), handle, cfg.Queries, cfg.Limits.MaxRowsPerQuery, timeout)
+	boundQueries, code := r.bindQueries(cfg, opts)
+	if code != ExitSuccess {
+		return code
+	}
+	results, err := dbreportdb.RunAll(context.Background(), handle, boundQueries, cfg.Limits.MaxRowsPerQuery, timeout)
 	if err != nil {
 		fmt.Fprintf(r.Stderr, "%s\n", err.Error())
 		return ExitQueryError
@@ -264,6 +273,43 @@ func (r Runner) loadConfig(opts commonOptions) (*config.Config, string, int) {
 	return cfg, path, ExitSuccess
 }
 
+func (r Runner) bindQueries(cfg *config.Config, opts commonOptions) ([]config.QueryConfig, int) {
+	fileParams := map[string]any{}
+	var err error
+	if strings.TrimSpace(opts.ParamsPath) != "" {
+		fileParams, err = params.LoadYAMLFile(opts.ParamsPath)
+		if err != nil {
+			fmt.Fprintf(r.Stderr, "%s\n", err.Error())
+			return nil, ExitConfigError
+		}
+	}
+	cliParams, err := params.ParseCLI(opts.ParamItems)
+	if err != nil {
+		fmt.Fprintf(r.Stderr, "%s\n", err.Error())
+		return nil, ExitConfigError
+	}
+	all := params.Merge(fileParams, cliParams)
+	bq := make([]config.QueryConfig, 0, len(cfg.Queries))
+	used := map[string]struct{}{}
+	for _, q := range cfg.Queries {
+		b, err := params.Bind(q.SQL, all)
+		if err != nil {
+			fmt.Fprintf(r.Stderr, "query %q requires parameter binding: %v\n", q.ID, err)
+			return nil, ExitConfigError
+		}
+		q.SQL = b.SQL
+		q.Args = b.Args
+		for n := range b.ReferencedSet {
+			used[n] = struct{}{}
+		}
+		bq = append(bq, q)
+	}
+	if err := params.ValidateUnused(all, used); err != nil {
+		fmt.Fprintf(r.Stderr, "%s\n", err.Error())
+		return nil, ExitConfigError
+	}
+	return bq, ExitSuccess
+}
 func (r Runner) openDatabase(ctx context.Context, cfg *config.Config) (*sql.DB, time.Duration, int) {
 	timeout := time.Duration(cfg.Database.TimeoutSeconds) * time.Second
 	handle, err := dbreportdb.Open(ctx, cfg.Database)
@@ -322,6 +368,8 @@ func pluralize(word string, count int) string {
 type commonOptions struct {
 	ConfigPath string
 	OutputPath string
+	ParamsPath string
+	ParamItems []string
 	Email      bool
 	NoEmail    bool
 	Quiet      bool
@@ -350,6 +398,18 @@ func parseCommonOptions(args []string) (commonOptions, error) {
 			}
 			i++
 			opts.ConfigPath = args[i]
+		case "--params":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--params requires a file path")
+			}
+			i++
+			opts.ParamsPath = args[i]
+		case "--param":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--param requires name=value")
+			}
+			i++
+			opts.ParamItems = append(opts.ParamItems, args[i])
 		case "--output":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--output requires a file path")

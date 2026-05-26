@@ -31,7 +31,9 @@ queries:
     type: "metric"
     sql: |
       SELECT COUNT(*) AS value
-      FROM auth_attempts;
+      FROM auth_attempts
+      WHERE login_time >= :start_time
+        AND login_time < :end_time;
 
   - id: "failed_login_count"
     title: "Failed Login Count"
@@ -39,7 +41,9 @@ queries:
     sql: |
       SELECT COUNT(*) AS value
       FROM auth_attempts
-      WHERE result = 'failure';
+      WHERE result = 'failure'
+        AND login_time >= :start_time
+        AND login_time < :end_time;
 
   - id: "successful_login_count"
     title: "Successful Login Count"
@@ -47,7 +51,9 @@ queries:
     sql: |
       SELECT COUNT(*) AS value
       FROM auth_attempts
-      WHERE result = 'success';
+      WHERE result = 'success'
+        AND login_time >= :start_time
+        AND login_time < :end_time;
 
   - id: "daily_login_outcomes"
     title: "Daily Login Outcomes"
@@ -59,6 +65,8 @@ queries:
     sql: |
       SELECT DATE(login_time) AS day, result, COUNT(*) AS count
       FROM auth_attempts
+      WHERE login_time >= :start_time
+        AND login_time < :end_time
       GROUP BY DATE(login_time), result
       ORDER BY day, result;
 
@@ -74,6 +82,8 @@ queries:
         SUBSTRING_INDEX(GROUP_CONCAT(aa.result ORDER BY aa.login_time DESC), ',', 1) AS last_result
       FROM user_accounts ua
       LEFT JOIN auth_attempts aa ON aa.user_id = ua.id
+        AND aa.login_time >= :start_time
+        AND aa.login_time < :end_time
       GROUP BY ua.id, ua.full_name, ua.username, ua.email
       ORDER BY last_login_time DESC
       LIMIT 20;
@@ -87,6 +97,8 @@ queries:
     sql: |
       SELECT result, COUNT(*) AS count
       FROM auth_attempts
+      WHERE login_time >= :start_time
+        AND login_time < :end_time
       GROUP BY result
       ORDER BY count DESC, result ASC;
 
@@ -96,6 +108,8 @@ queries:
     sql: |
       SELECT result, reason, COUNT(*) AS count
       FROM auth_attempts
+      WHERE login_time >= :start_time
+        AND login_time < :end_time
       GROUP BY result, reason
       ORDER BY result ASC, count DESC, reason ASC;
 

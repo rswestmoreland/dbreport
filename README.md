@@ -206,3 +206,9 @@ Copyright (c) 2026 Richard S. Westmoreland
 Richard S. Westmoreland
 
 dev@rswestmore.land
+
+Example with parameters:
+
+  dbreport run --config examples/auth-login-report.yml --params examples/auth-login-params.yml --param result=success
+
+Parameters are value-only bound arguments; dynamic identifiers are not supported.

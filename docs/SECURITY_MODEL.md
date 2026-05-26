@@ -20,3 +20,5 @@ dbreport assumes trusted, reviewed YAML query configuration and enforces defense
 
 
 Safety defaults: omitted blocked function/column/pattern lists use built-in defaults; configured lists override defaults for that list.
+
+Parameter binding uses value-only placeholders and disallows dynamic identifiers by design. This is safer than regenerating SQL/YAML.

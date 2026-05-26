@@ -35,7 +35,7 @@ func RunQuery(ctx context.Context, handle *sql.DB, query config.QueryConfig, max
 	defer cancel()
 
 	start := time.Now()
-	rows, err := handle.QueryContext(queryCtx, query.SQL)
+	rows, err := handle.QueryContext(queryCtx, query.SQL, query.Args...)
 	if err != nil {
 		return Result{}, QueryError{QueryID: query.ID, Title: query.Title, Err: err}
 	}

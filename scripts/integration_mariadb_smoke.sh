@@ -22,6 +22,7 @@ DOC_SAMPLE_REPORT="$ROOT_DIR/docs/assets/sample-report.html"
 SCHEMA_FILE="$ROOT_DIR/examples/auth-login-schema.sql"
 SEED_FILE="$ROOT_DIR/examples/auth-login-seed.sql"
 REPORT_CONFIG="$WORK_DIR/auth-login-report.yml"
+PARAMS_FILE="$WORK_DIR/auth-login-params.yml"
 
 MODE=""
 CONTAINER_STARTED=0
@@ -52,6 +53,7 @@ trap cleanup EXIT
 
 mkdir -p "$WORK_DIR"
 cp "$ROOT_DIR/examples/auth-login-report.yml" "$REPORT_CONFIG"
+cp "$ROOT_DIR/examples/auth-login-params.yml" "$PARAMS_FILE"
 sed -i "s/^  port: .*/  port: $DB_PORT/" "$REPORT_CONFIG"
 sed -i "s/^  name: .*/  name: \"$DB_NAME\"/" "$REPORT_CONFIG"
 
@@ -165,8 +167,8 @@ SAMPLE_COMMIT="$(git rev-parse --short HEAD)"
 SAMPLE_DATE="$(date -u +%Y-%m-%d)"
 go build -ldflags="-X 'github.com/rswestmoreland/dbreport/internal/version.Version=${SAMPLE_VERSION}' -X 'github.com/rswestmoreland/dbreport/internal/version.Commit=${SAMPLE_COMMIT}' -X 'github.com/rswestmoreland/dbreport/internal/version.Date=${SAMPLE_DATE}'" -o "$WORK_DIR/dbreport" ./cmd/dbreport
 
-"$WORK_DIR/dbreport" check --config "$REPORT_CONFIG"
-"$WORK_DIR/dbreport" run --config "$REPORT_CONFIG" --output "$REPORT_PATH"
+"$WORK_DIR/dbreport" check --config "$REPORT_CONFIG" --params "$PARAMS_FILE"
+"$WORK_DIR/dbreport" run --config "$REPORT_CONFIG" --params "$PARAMS_FILE" --output "$REPORT_PATH"
 
 [[ -f "$REPORT_PATH" ]] || { log "report file missing: $REPORT_PATH"; exit 1; }
 [[ -s "$REPORT_PATH" ]] || { log "report file empty: $REPORT_PATH"; exit 1; }

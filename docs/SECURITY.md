@@ -70,3 +70,5 @@ environment variable values.
 
 
 Safety defaults: omitted blocked function/column/pattern lists use built-in defaults; configured lists override defaults for that list.
+
+Named parameters are bound through database/sql arguments, not SQL interpolation. Structural placeholders (table/column/order/group/sql fragments) are rejected.
