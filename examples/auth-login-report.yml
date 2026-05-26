@@ -49,29 +49,18 @@ queries:
       FROM auth_attempts
       WHERE result = 'success';
 
-  - id: "daily_successful_logins"
-    title: "Daily Successful Logins"
+  - id: "daily_login_outcomes"
+    title: "Daily Login Outcomes"
     type: "line"
     label_column: "day"
+    series_column: "result"
     value_column: "count"
+    show_table: false
     sql: |
-      SELECT DATE(login_time) AS day, COUNT(*) AS count
+      SELECT DATE(login_time) AS day, result, COUNT(*) AS count
       FROM auth_attempts
-      WHERE result = 'success'
-      GROUP BY DATE(login_time)
-      ORDER BY day;
-
-  - id: "daily_failed_logins"
-    title: "Daily Failed Logins"
-    type: "line"
-    label_column: "day"
-    value_column: "count"
-    sql: |
-      SELECT DATE(login_time) AS day, COUNT(*) AS count
-      FROM auth_attempts
-      WHERE result = 'failure'
-      GROUP BY DATE(login_time)
-      ORDER BY day;
+      GROUP BY DATE(login_time), result
+      ORDER BY day, result;
 
   - id: "last_logins_by_user"
     title: "Last Logins by User"
@@ -94,6 +83,19 @@ queries:
     type: "bar"
     label_column: "result"
     value_column: "count"
+    sql: |
+      SELECT result, COUNT(*) AS count
+      FROM auth_attempts
+      GROUP BY result
+      ORDER BY count DESC, result ASC;
+
+
+  - id: "login_outcome_share"
+    title: "Login Outcome Share"
+    type: "pie"
+    label_column: "result"
+    value_column: "count"
+    show_table: true
     sql: |
       SELECT result, COUNT(*) AS count
       FROM auth_attempts

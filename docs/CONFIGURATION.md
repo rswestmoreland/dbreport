@@ -143,9 +143,9 @@ Rules:
 
 - `id` must be unique.
 - `title` is required.
-- `type` must be one of `metric`, `table`, `bar`, or `line`.
+- `type` must be one of `metric`, `table`, `bar`, `line`, or `pie`.
 - `sql` must not be empty.
-- Chart sections require `label_column` and `value_column`.
+- Chart sections require `label_column` and `value_column`. For `line`, optional `series_column` enables multi-series lines. Optional `show_table` (default true) hides fallback tables when false for bar/line/pie.
 
 ## Environment variables
 

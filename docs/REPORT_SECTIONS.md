@@ -9,6 +9,7 @@ metric
 table
 bar
 line
+pie
 ```
 
 ## Metric
@@ -75,7 +76,7 @@ Contract:
 - `value_column` is required.
 - Values must be numeric or convertible to numeric values.
 - Inline SVG is rendered.
-- A fallback data table is included.
+- A fallback data table is included by default (`show_table: false` to hide it).
 
 ## Line chart
 
@@ -102,7 +103,7 @@ Contract:
 - Query order is preserved.
 - Values must be numeric or convertible to numeric values.
 - Inline SVG is rendered.
-- A fallback data table is included.
+- A fallback data table is included by default (`show_table: false` to hide it).
 
 ## Query design recommendations
 

@@ -53,12 +53,14 @@ type EmailConfig struct {
 }
 
 type QueryConfig struct {
-	ID          string `yaml:"id"`
-	Title       string `yaml:"title"`
-	Type        string `yaml:"type"`
-	LabelColumn string `yaml:"label_column"`
-	ValueColumn string `yaml:"value_column"`
-	SQL         string `yaml:"sql"`
+	ID           string `yaml:"id"`
+	Title        string `yaml:"title"`
+	Type         string `yaml:"type"`
+	LabelColumn  string `yaml:"label_column"`
+	SeriesColumn string `yaml:"series_column"`
+	ValueColumn  string `yaml:"value_column"`
+	ShowTable    *bool  `yaml:"show_table"`
+	SQL          string `yaml:"sql"`
 }
 
 func LoadFile(path string) (*Config, error) {
@@ -164,7 +166,7 @@ func validateQueries(queries []QueryConfig, problems *[]string) {
 		if strings.TrimSpace(q.SQL) == "" {
 			*problems = append(*problems, prefix+".sql is required")
 		}
-		if qtype == "bar" || qtype == "line" {
+		if qtype == "bar" || qtype == "line" || qtype == "pie" {
 			if strings.TrimSpace(q.LabelColumn) == "" {
 				*problems = append(*problems, prefix+".label_column is required for "+qtype+" sections")
 			}
@@ -225,7 +227,7 @@ func containsHeaderBreak(value string) bool {
 
 func isKnownQueryType(qtype string) bool {
 	switch qtype {
-	case "metric", "table", "bar", "line":
+	case "metric", "table", "bar", "line", "pie":
 		return true
 	default:
 		return false

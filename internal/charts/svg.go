@@ -18,6 +18,7 @@ const (
 	lineHeight  = 260
 	lineLeftPad = 54
 	lineTopPad  = 24
+	lineColors  = "#2f6fed,#ef4444,#16a34a,#f59e0b,#7c3aed,#0891b2"
 )
 
 func RenderBar(result dbreportdb.Result, labelColumn string, valueColumn string) (string, error) {
@@ -67,7 +68,7 @@ func RenderBar(result dbreportdb.Result, labelColumn string, valueColumn string)
 	return b.String(), nil
 }
 
-func RenderLine(result dbreportdb.Result, labelColumn string, valueColumn string) (string, error) {
+func RenderLine(result dbreportdb.Result, labelColumn string, seriesColumn string, valueColumn string) (string, error) {
 	labelIndex, err := columnIndex(result.Columns, labelColumn)
 	if err != nil {
 		return "", err
@@ -76,48 +77,89 @@ func RenderLine(result dbreportdb.Result, labelColumn string, valueColumn string
 	if err != nil {
 		return "", err
 	}
-
-	points, err := chartPoints(result, labelIndex, valueIndex)
-	if err != nil {
-		return "", err
-	}
-	if len(points) == 0 {
+	if len(result.Rows) == 0 {
 		return emptySVG("No rows returned")
 	}
-
-	minValue := points[0].Value
-	maxValue := points[0].Value
-	for _, point := range points {
-		if point.Value < minValue {
-			minValue = point.Value
+	series := []string{"Series"}
+	labels := []string{}
+	valuesBySeries := map[string]map[string]float64{"Series": {}}
+	if strings.TrimSpace(seriesColumn) != "" {
+		seriesIndex, idxErr := columnIndex(result.Columns, seriesColumn)
+		if idxErr != nil {
+			return "", idxErr
 		}
-		if point.Value > maxValue {
-			maxValue = point.Value
+		series = nil
+		valuesBySeries = map[string]map[string]float64{}
+		for rowIndex, row := range result.Rows {
+			if labelIndex >= len(row) || valueIndex >= len(row) || seriesIndex >= len(row) {
+				return "", fmt.Errorf("query %q row %d does not contain required chart columns", result.Query.ID, rowIndex)
+			}
+			label := row[labelIndex].Text
+			s := row[seriesIndex].Text
+			value, parseErr := numericValue(row[valueIndex])
+			if parseErr != nil {
+				return "", fmt.Errorf("query %q row %d column %q is not numeric: %w", result.Query.ID, rowIndex, result.Columns[valueIndex], parseErr)
+			}
+			if _, ok := valuesBySeries[s]; !ok {
+				valuesBySeries[s] = map[string]float64{}
+				series = append(series, s)
+			}
+			valuesBySeries[s][label] = value
+			if len(labels) == 0 || labels[len(labels)-1] != label {
+				labels = append(labels, label)
+			}
+		}
+	} else {
+		for rowIndex, row := range result.Rows {
+			if labelIndex >= len(row) || valueIndex >= len(row) {
+				return "", fmt.Errorf("query %q row %d does not contain required chart columns", result.Query.ID, rowIndex)
+			}
+			label := row[labelIndex].Text
+			value, parseErr := numericValue(row[valueIndex])
+			if parseErr != nil {
+				return "", fmt.Errorf("query %q row %d column %q is not numeric: %w", result.Query.ID, rowIndex, result.Columns[valueIndex], parseErr)
+			}
+			labels = append(labels, label)
+			valuesBySeries["Series"][label] = value
 		}
 	}
-	if minValue == maxValue {
-		minValue = 0
-		if maxValue == 0 {
-			maxValue = 1
+	if len(labels) == 0 {
+		return emptySVG("No rows returned")
+	}
+	minValue := 0.0
+	maxValue := 0.0
+	for _, s := range series {
+		for _, label := range labels {
+			value := valuesBySeries[s][label]
+			if value > maxValue {
+				maxValue = value
+			}
 		}
+	}
+	if maxValue <= minValue {
+		maxValue = 1
 	}
 
 	plotWidth := chartWidth - lineLeftPad - 32
 	plotHeight := lineHeight - lineTopPad - 52
-	var polyline strings.Builder
+	colors := strings.Split(lineColors, ",")
 	var markers strings.Builder
-	for i, point := range points {
-		x := lineLeftPad
-		if len(points) > 1 {
-			x = lineLeftPad + int(math.Round(float64(i)*float64(plotWidth)/float64(len(points)-1)))
+	var paths strings.Builder
+	for seriesIndex, s := range series {
+		var polyline strings.Builder
+		for i, label := range labels {
+			x := lineLeftPad
+			if len(labels) > 1 {
+				x = lineLeftPad + int(math.Round(float64(i)*float64(plotWidth)/float64(len(labels)-1)))
+			}
+			value := valuesBySeries[s][label]
+			ratio := (value - minValue) / (maxValue - minValue)
+			y := lineTopPad + plotHeight - int(math.Round(ratio*float64(plotHeight)))
+			polyline.WriteString(fmt.Sprintf("%d,%d ", x, y))
+			markers.WriteString(fmt.Sprintf(`<circle class="chart-point" cx="%d" cy="%d" r="3" style="stroke:%s"></circle>`, x, y, colors[seriesIndex%len(colors)]))
 		}
-		ratio := (point.Value - minValue) / (maxValue - minValue)
-		y := lineTopPad + plotHeight - int(math.Round(ratio*float64(plotHeight)))
-		polyline.WriteString(fmt.Sprintf("%d,%d ", x, y))
-		markers.WriteString(fmt.Sprintf(`<circle class="chart-point" cx="%d" cy="%d" r="4"></circle>`, x, y))
+		paths.WriteString(fmt.Sprintf(`<polyline class="chart-line-path" style="stroke:%s" points="%s"></polyline>`, colors[seriesIndex%len(colors)], strings.TrimSpace(polyline.String())))
 	}
-
-	last := points[len(points)-1]
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`<svg class="chart chart-line" viewBox="0 0 %d %d" role="img" aria-label="%s">`, chartWidth, lineHeight, html.EscapeString(result.Query.Title)))
 	b.WriteString(`<rect class="chart-bg" x="0" y="0" width="100%" height="100%" rx="10"></rect>`)
@@ -125,11 +167,80 @@ func RenderLine(result dbreportdb.Result, labelColumn string, valueColumn string
 	b.WriteString(fmt.Sprintf(`<line class="chart-axis" x1="%d" y1="%d" x2="%d" y2="%d"></line>`, lineLeftPad, lineTopPad, lineLeftPad, lineTopPad+plotHeight))
 	b.WriteString(fmt.Sprintf(`<text class="chart-tick" x="12" y="%d">%s</text>`, lineTopPad+12, html.EscapeString(formatNumber(maxValue))))
 	b.WriteString(fmt.Sprintf(`<text class="chart-tick" x="12" y="%d">%s</text>`, lineTopPad+plotHeight, html.EscapeString(formatNumber(minValue))))
-	b.WriteString(fmt.Sprintf(`<polyline class="chart-line-path" points="%s"></polyline>`, strings.TrimSpace(polyline.String())))
+	b.WriteString(paths.String())
 	b.WriteString(markers.String())
-	b.WriteString(fmt.Sprintf(`<text class="chart-label" x="%d" y="%d">Latest: %s = %s</text>`, lineLeftPad, lineHeight-18, html.EscapeString(trimLabel(last.Label, 28)), html.EscapeString(formatNumber(last.Value))))
+	b.WriteString(axisLabels(labels, plotWidth, plotHeight))
 	b.WriteString(`</svg>`)
 	return b.String(), nil
+}
+
+func RenderPie(result dbreportdb.Result, labelColumn string, valueColumn string) (string, error) {
+	labelIndex, err := columnIndex(result.Columns, labelColumn)
+	if err != nil {
+		return "", err
+	}
+	valueIndex, err := columnIndex(result.Columns, valueColumn)
+	if err != nil {
+		return "", err
+	}
+	points, err := chartPoints(result, labelIndex, valueIndex)
+	if err != nil {
+		return "", err
+	}
+	if len(points) == 0 {
+		return emptySVG("No rows returned")
+	}
+	total := 0.0
+	for _, p := range points {
+		if p.Value < 0 {
+			return "", fmt.Errorf("query %q contains negative pie values", result.Query.ID)
+		}
+		total += p.Value
+	}
+	if total <= 0 {
+		return emptySVG("No positive values to chart")
+	}
+	cx, cy, r := 190.0, 120.0, 88.0
+	colors := strings.Split(lineColors, ",")
+	start := -math.Pi / 2
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf(`<svg class="chart chart-pie" viewBox="0 0 %d 260" role="img" aria-label="%s">`, chartWidth, html.EscapeString(result.Query.Title)))
+	b.WriteString(`<rect class="chart-bg" x="0" y="0" width="100%" height="100%" rx="10"></rect>`)
+	for i, p := range points {
+		if p.Value == 0 {
+			continue
+		}
+		sweep := (p.Value / total) * 2 * math.Pi
+		x1, y1 := cx+r*math.Cos(start), cy+r*math.Sin(start)
+		end := start + sweep
+		x2, y2 := cx+r*math.Cos(end), cy+r*math.Sin(end)
+		large := 0
+		if sweep > math.Pi {
+			large = 1
+		}
+		b.WriteString(fmt.Sprintf(`<path d="M %.2f %.2f L %.2f %.2f A %.2f %.2f 0 %d 1 %.2f %.2f Z" fill="%s"></path>`, cx, cy, x1, y1, r, r, large, x2, y2, colors[i%len(colors)]))
+		start = end
+	}
+	for i, p := range points {
+		b.WriteString(fmt.Sprintf(`<rect x="360" y="%d" width="12" height="12" fill="%s"></rect><text class="chart-label" x="378" y="%d">%s: %s</text>`, 32+i*20, colors[i%len(colors)], 42+i*20, html.EscapeString(trimLabel(p.Label, 24)), html.EscapeString(formatNumber(p.Value))))
+	}
+	b.WriteString(`</svg>`)
+	return b.String(), nil
+}
+
+func axisLabels(labels []string, plotWidth int, plotHeight int) string {
+	var b strings.Builder
+	writeX := func(x int, value string) {
+		b.WriteString(fmt.Sprintf(`<text class="chart-label" x="%d" y="%d">%s</text>`, x, lineTopPad+plotHeight+20, html.EscapeString(trimLabel(value, 16))))
+	}
+	writeX(lineLeftPad, labels[0])
+	if len(labels) >= 3 {
+		writeX(lineLeftPad+plotWidth/2, labels[len(labels)/2])
+	}
+	if len(labels) > 1 {
+		writeX(lineLeftPad+plotWidth-36, labels[len(labels)-1])
+	}
+	return b.String()
 }
 
 func emptySVG(message string) (string, error) {

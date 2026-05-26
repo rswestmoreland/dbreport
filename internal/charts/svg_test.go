@@ -37,11 +37,11 @@ func TestRenderLineChart(t *testing.T) {
 		Duration: time.Millisecond,
 	}
 
-	rendered, err := RenderLine(result, "day", "count")
+	rendered, err := RenderLine(result, "day", "", "count")
 	if err != nil {
 		t.Fatalf("RenderLine failed: %v", err)
 	}
-	for _, want := range []string{"chart-line", "polyline", "Latest:"} {
+	for _, want := range []string{"chart-line", "polyline", "2026-05-24", "2026-05-25", ">0<"} {
 		if !strings.Contains(rendered, want) {
 			t.Fatalf("expected line chart to contain %q, got %s", want, rendered)
 		}
@@ -71,11 +71,26 @@ func TestRenderLineRejectsNonNumericValues(t *testing.T) {
 		Rows:    [][]dbreportdb.Cell{{dbreportdb.ConvertCell("2026-05-25"), dbreportdb.ConvertCell("not-a-number")}},
 	}
 
-	_, err := RenderLine(result, "day", "count")
+	_, err := RenderLine(result, "day", "", "count")
 	if err == nil {
 		t.Fatal("expected non-numeric error")
 	}
 	if !strings.Contains(err.Error(), "is not numeric") {
 		t.Fatalf("expected non-numeric error, got %v", err)
+	}
+}
+
+func TestRenderPieChart(t *testing.T) {
+	result := dbreportdb.Result{
+		Query:   config.QueryConfig{ID: "share", Title: "Share", Type: "pie"},
+		Columns: []string{"result", "count"},
+		Rows: [][]dbreportdb.Cell{
+			{dbreportdb.ConvertCell("success"), dbreportdb.ConvertCell(int64(3))},
+			{dbreportdb.ConvertCell("failure"), dbreportdb.ConvertCell(int64(2))},
+		},
+	}
+	rendered, err := RenderPie(result, "result", "count")
+	if err != nil || !strings.Contains(rendered, "chart-pie") || !strings.Contains(rendered, "success: 3") {
+		t.Fatalf("unexpected pie output err=%v output=%s", err, rendered)
 	}
 }

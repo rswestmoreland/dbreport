@@ -20,6 +20,7 @@ func newSection(result dbreportdb.Result) (Section, error) {
 		Duration:  formatDuration(result.Duration),
 		RowCount:  result.RowCount(),
 		Truncated: result.Truncated,
+		ShowTable: shouldShowTable(result.Query.ShowTable),
 	}
 
 	switch strings.ToLower(result.Query.Type) {
@@ -34,7 +35,13 @@ func newSection(result dbreportdb.Result) (Section, error) {
 		}
 		section.ChartHTML = template.HTML(chart)
 	case "line":
-		chart, err := charts.RenderLine(result, result.Query.LabelColumn, result.Query.ValueColumn)
+		chart, err := charts.RenderLine(result, result.Query.LabelColumn, result.Query.SeriesColumn, result.Query.ValueColumn)
+		if err != nil {
+			return Section{}, err
+		}
+		section.ChartHTML = template.HTML(chart)
+	case "pie":
+		chart, err := charts.RenderPie(result, result.Query.LabelColumn, result.Query.ValueColumn)
 		if err != nil {
 			return Section{}, err
 		}
@@ -79,7 +86,11 @@ func metricValue(result dbreportdb.Result) (string, string) {
 
 func formatDuration(value time.Duration) string {
 	if value < time.Millisecond {
-		return strings.ReplaceAll(value.String(), "µ", "u")
+		return strings.ReplaceAll(value.String(), "\u00b5", "u")
 	}
-	return strings.ReplaceAll(value.Round(time.Millisecond).String(), "µ", "u")
+	return strings.ReplaceAll(value.Round(time.Millisecond).String(), "\u00b5", "u")
+}
+
+func shouldShowTable(showTable *bool) bool {
+	return showTable == nil || *showTable
 }

@@ -39,6 +39,7 @@ type Section struct {
 	MetricValue string
 	MetricLabel string
 	ChartHTML   template.HTML
+	ShowTable   bool
 	Duration    string
 	RowCount    int
 	Truncated   bool

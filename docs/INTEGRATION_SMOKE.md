@@ -58,6 +58,6 @@ The script still removes temporary MariaDB data directories, socket/pid/log file
 
 ## Visual sample asset
 
-The repository currently uses `docs/assets/sample-report.svg` as the README visual. A PNG visual can be generated from `docs/assets/sample-report.html` in environments with a headless browser toolchain.
+`docs/assets/sample-report.html` is the authoritative generated sample from real dbreport output.
 
-If PNG regeneration is not available in your local environment, keep `docs/assets/sample-report.html` as the source of truth and update `docs/assets/sample-report.svg` as fallback documentation art.
+A screenshot image can be added later from browser-rendered capture if needed; fallback SVG mockup generation is no longer part of this workflow.
