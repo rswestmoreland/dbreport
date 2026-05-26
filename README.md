@@ -144,17 +144,17 @@ section contracts.
 
 ## Sample report
 
-A generated HTML sample report is included here:
+The sample below is rendered from the generated HTML report output.
 
-`docs/assets/sample-report.html`
+![Sample dbreport authentication activity report](docs/assets/sample-report.png)
 
-A PNG screenshot will be added later at:
+A generated HTML sample report is also included at:
 
-`docs/assets/sample-report.png`
+```text
+docs/assets/sample-report.html
+```
 
-The sample report is generated from the optional MariaDB smoke-test dataset
-using fake data and reserved example domains.
-
+The sample is produced by the optional MariaDB smoke-test dataset using fake user data and reserved example domains. It is intended to show the current report layout, metric tiles, charts, tables, inline SVG rendering, and self-contained HTML output.
 ## Security notes
 
 Recommended defaults:
