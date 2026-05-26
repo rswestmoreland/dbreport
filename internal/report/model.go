@@ -57,7 +57,7 @@ func NewDocument(cfg config.Config, results []dbreportdb.Result) (Document, erro
 	totalRows := 0
 	totalDuration := time.Duration(0)
 	for _, result := range results {
-		section, err := newSection(result)
+		section, err := newSection(cfg, result)
 		if err != nil {
 			return Document{}, err
 		}
@@ -68,7 +68,7 @@ func NewDocument(cfg config.Config, results []dbreportdb.Result) (Document, erro
 	summary := Summary{QueryCount: len(results), RowCount: totalRows, Duration: formatDuration(totalDuration)}
 	return Document{
 		Title:        cfg.Title,
-		GeneratedAt:  time.Now(),
+		GeneratedAt:  time.Now().UTC(),
 		Blocks:       buildBlocks(sections),
 		Summary:      summary,
 		Footer:       Footer{AppName: version.AppName, Version: version.Version, Commit: version.Commit, Date: version.Date},

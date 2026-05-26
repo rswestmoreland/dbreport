@@ -12,12 +12,14 @@ import (
 const DefaultConfigPath = "report.yml"
 
 type Config struct {
-	Title    string         `yaml:"title"`
-	Output   OutputConfig   `yaml:"output"`
-	Database DatabaseConfig `yaml:"database"`
-	Limits   LimitsConfig   `yaml:"limits"`
-	Email    EmailConfig    `yaml:"email"`
-	Queries  []QueryConfig  `yaml:"queries"`
+	Title     string          `yaml:"title"`
+	Output    OutputConfig    `yaml:"output"`
+	Database  DatabaseConfig  `yaml:"database"`
+	Limits    LimitsConfig    `yaml:"limits"`
+	Rendering RenderingConfig `yaml:"rendering"`
+	Safety    SafetyConfig    `yaml:"safety"`
+	Email     EmailConfig     `yaml:"email"`
+	Queries   []QueryConfig   `yaml:"queries"`
 }
 
 type OutputConfig struct {
@@ -36,6 +38,20 @@ type DatabaseConfig struct {
 
 type LimitsConfig struct {
 	MaxRowsPerQuery int `yaml:"max_rows_per_query"`
+	MaxCellLength   int `yaml:"max_cell_length"`
+	MaxReportBytes  int `yaml:"max_report_bytes"`
+}
+
+type RenderingConfig struct {
+	NullValue string `yaml:"null_value"`
+}
+
+type SafetyConfig struct {
+	AllowedDatabases []string `yaml:"allowed_databases"`
+	AllowedTables    []string `yaml:"allowed_tables"`
+	BlockedFunctions []string `yaml:"blocked_functions"`
+	BlockedColumns   []string `yaml:"blocked_columns"`
+	BlockedPatterns  []string `yaml:"blocked_patterns"`
 }
 
 type EmailConfig struct {
@@ -53,6 +69,7 @@ type EmailConfig struct {
 }
 
 type QueryConfig struct {
+	NullValue    string `yaml:"null_value"`
 	ID           string `yaml:"id"`
 	Title        string `yaml:"title"`
 	Type         string `yaml:"type"`
@@ -132,6 +149,12 @@ func validateDatabase(db DatabaseConfig, problems *[]string) {
 func validateLimits(limits LimitsConfig, problems *[]string) {
 	if limits.MaxRowsPerQuery <= 0 {
 		*problems = append(*problems, "limits.max_rows_per_query must be greater than zero")
+	}
+	if limits.MaxCellLength < 0 {
+		*problems = append(*problems, "limits.max_cell_length must be zero or greater")
+	}
+	if limits.MaxReportBytes < 0 {
+		*problems = append(*problems, "limits.max_report_bytes must be zero or greater")
 	}
 }
 

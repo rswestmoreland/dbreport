@@ -7,16 +7,17 @@ import (
 	"time"
 
 	"github.com/rswestmoreland/dbreport/internal/charts"
+	"github.com/rswestmoreland/dbreport/internal/config"
 	dbreportdb "github.com/rswestmoreland/dbreport/internal/db"
 )
 
-func newSection(result dbreportdb.Result) (Section, error) {
+func newSection(cfg config.Config, result dbreportdb.Result) (Section, error) {
 	section := Section{
 		ID:        result.Query.ID,
 		Title:     result.Query.Title,
 		Type:      result.Query.Type,
 		Columns:   append([]string(nil), result.Columns...),
-		Rows:      stringRows(result),
+		Rows:      stringRows(cfg, result),
 		Duration:  formatDuration(result.Duration),
 		RowCount:  result.RowCount(),
 		Truncated: result.Truncated,
@@ -25,7 +26,7 @@ func newSection(result dbreportdb.Result) (Section, error) {
 
 	switch strings.ToLower(result.Query.Type) {
 	case "metric":
-		section.MetricValue, section.MetricLabel = metricValue(result)
+		section.MetricValue, section.MetricLabel = metricValue(cfg, result)
 	case "table":
 		// Tables use the generic row rendering.
 	case "bar":
@@ -53,13 +54,13 @@ func newSection(result dbreportdb.Result) (Section, error) {
 	return section, nil
 }
 
-func stringRows(result dbreportdb.Result) [][]string {
+func stringRows(cfg config.Config, result dbreportdb.Result) [][]string {
 	rows := make([][]string, 0, len(result.Rows))
 	for _, sourceRow := range result.Rows {
 		row := make([]string, len(sourceRow))
 		for i, cell := range sourceRow {
 			if cell.IsNull {
-				row[i] = "NULL"
+				row[i] = nullValue(cfg, result.Query)
 			} else {
 				row[i] = cell.Text
 			}
@@ -69,13 +70,13 @@ func stringRows(result dbreportdb.Result) [][]string {
 	return rows
 }
 
-func metricValue(result dbreportdb.Result) (string, string) {
+func metricValue(cfg config.Config, result dbreportdb.Result) (string, string) {
 	if len(result.Rows) == 0 || len(result.Rows[0]) == 0 {
 		return "No data", result.Query.Title
 	}
 	cell := result.Rows[0][0]
 	if cell.IsNull {
-		return "NULL", result.Query.Title
+		return nullValue(cfg, result.Query), result.Query.Title
 	}
 	label := result.Query.Title
 	if len(result.Columns) > 0 {
@@ -93,4 +94,11 @@ func formatDuration(value time.Duration) string {
 
 func shouldShowTable(showTable *bool) bool {
 	return showTable == nil || *showTable
+}
+
+func nullValue(cfg config.Config, q config.QueryConfig) string {
+	if q.NullValue != "" {
+		return q.NullValue
+	}
+	return cfg.Rendering.NullValue
 }

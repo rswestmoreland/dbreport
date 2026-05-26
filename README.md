@@ -261,3 +261,5 @@ DATE=$(date -u +%Y-%m-%d) \
 
 - sample-report.html is the authoritative generated visual sample.
 - Report HTML head includes generator metadata and a project help link to https://github.com/rswestmoreland/dbreport; the report remains self-contained.
+
+- Security hardening: SELECT-only query policy, configurable safety filters, UTC generated timestamp, CSP meta, and NULL rendering controls.

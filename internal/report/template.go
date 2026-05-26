@@ -11,6 +11,7 @@ const reportTemplate = `<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
   <title>{{.Title}}</title>
   <meta name="generator" content="{{.Footer.AppName}} {{.Footer.Version}}">
   <meta name="dbreport:project" content="https://github.com/rswestmoreland/dbreport">
@@ -166,7 +167,7 @@ const reportTemplate = `<!doctype html>
   <main class="page">
     <header class="header">
       <h1>{{.Title}}</h1>
-      <p>Generated {{formatTime .GeneratedAt}}</p>
+      <p>Generated {{formatTime .GeneratedAt}} UTC - All times in UTC</p>
     </header>
 
     {{range .Blocks}}
