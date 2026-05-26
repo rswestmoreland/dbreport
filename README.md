@@ -257,3 +257,7 @@ COMMIT=$(git rev-parse --short HEAD) \
 DATE=$(date -u +%Y-%m-%d) \
 ./scripts/build_release.sh
 ```
+
+
+- sample-report.html is the authoritative generated visual sample.
+- Report HTML head includes generator metadata and a project help link to https://github.com/rswestmoreland/dbreport; the report remains self-contained.

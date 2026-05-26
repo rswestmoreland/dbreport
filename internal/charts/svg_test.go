@@ -41,10 +41,35 @@ func TestRenderLineChart(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RenderLine failed: %v", err)
 	}
-	for _, want := range []string{"chart-line", "polyline", "2026-05-24", "2026-05-25", ">0<"} {
+	for _, want := range []string{"chart-line", "polyline", "2026-05-24", "2026-05-25", ">0<", "text-anchor=\"start\"", "text-anchor=\"end\""} {
 		if !strings.Contains(rendered, want) {
 			t.Fatalf("expected line chart to contain %q, got %s", want, rendered)
 		}
+	}
+}
+
+func TestRenderLineMultiSeriesLegend(t *testing.T) {
+	result := dbreportdb.Result{
+		Query:   config.QueryConfig{ID: "daily", Title: "Daily", Type: "line"},
+		Columns: []string{"day", "result", "count"},
+		Rows: [][]dbreportdb.Cell{
+			{dbreportdb.ConvertCell("2026-05-24"), dbreportdb.ConvertCell("success"), dbreportdb.ConvertCell(int64(8))},
+			{dbreportdb.ConvertCell("2026-05-24"), dbreportdb.ConvertCell("failure"), dbreportdb.ConvertCell(int64(2))},
+			{dbreportdb.ConvertCell("2026-05-25"), dbreportdb.ConvertCell("success"), dbreportdb.ConvertCell(int64(9))},
+			{dbreportdb.ConvertCell("2026-05-25"), dbreportdb.ConvertCell("failure"), dbreportdb.ConvertCell(int64(4))},
+		},
+	}
+	rendered, err := RenderLine(result, "day", "result", "count")
+	if err != nil {
+		t.Fatalf("RenderLine failed: %v", err)
+	}
+	for _, want := range []string{"success", "failure", "stroke-linecap:round"} {
+		if !strings.Contains(rendered, want) {
+			t.Fatalf("expected legend marker %q in %s", want, rendered)
+		}
+	}
+	if strings.Contains(rendered, "...") {
+		t.Fatalf("labels should not be truncated: %s", rendered)
 	}
 }
 
@@ -90,7 +115,7 @@ func TestRenderPieChart(t *testing.T) {
 		},
 	}
 	rendered, err := RenderPie(result, "result", "count")
-	if err != nil || !strings.Contains(rendered, "chart-pie") || !strings.Contains(rendered, "success: 3") {
+	if err != nil || !strings.Contains(rendered, "chart-pie") || !strings.Contains(rendered, "success: 3") || !strings.Contains(rendered, "stroke-width=\"2\"") {
 		t.Fatalf("unexpected pie output err=%v output=%s", err, rendered)
 	}
 }

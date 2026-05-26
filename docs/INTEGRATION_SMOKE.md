@@ -61,3 +61,6 @@ The script still removes temporary MariaDB data directories, socket/pid/log file
 `docs/assets/sample-report.html` is the authoritative generated sample from real dbreport output.
 
 A screenshot image can be added later from browser-rendered capture if needed; fallback SVG mockup generation is no longer part of this workflow.
+
+
+- sample-report.html is the authoritative generated visual sample.

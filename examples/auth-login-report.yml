@@ -80,22 +80,10 @@ queries:
 
   - id: "successful_vs_failed_logins"
     title: "Successful vs Failed Logins"
-    type: "bar"
-    label_column: "result"
-    value_column: "count"
-    sql: |
-      SELECT result, COUNT(*) AS count
-      FROM auth_attempts
-      GROUP BY result
-      ORDER BY count DESC, result ASC;
-
-
-  - id: "login_outcome_share"
-    title: "Login Outcome Share"
     type: "pie"
     label_column: "result"
     value_column: "count"
-    show_table: true
+    show_table: false
     sql: |
       SELECT result, COUNT(*) AS count
       FROM auth_attempts
