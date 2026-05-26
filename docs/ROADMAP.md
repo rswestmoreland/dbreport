@@ -38,3 +38,5 @@ single-binary MariaDB reporting utility, not a full BI platform.
 
 
 - sample-report.html is the authoritative generated visual sample.
+
+- Future optional split report and db-auth config remains a candidate.

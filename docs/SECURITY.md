@@ -67,3 +67,6 @@ Reports may contain sensitive data. Before enabling email:
 
 The tool should not print passwords, full credential-bearing DSNs, or secret
 environment variable values.
+
+
+Safety defaults: omitted blocked function/column/pattern lists use built-in defaults; configured lists override defaults for that list.

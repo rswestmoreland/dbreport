@@ -263,3 +263,6 @@ DATE=$(date -u +%Y-%m-%d) \
 - Report HTML head includes generator metadata and a project help link to https://github.com/rswestmoreland/dbreport; the report remains self-contained.
 
 - Security hardening: SELECT-only query policy, configurable safety filters, UTC generated timestamp, CSP meta, and NULL rendering controls.
+
+
+Safety notes: `safety.allowed_databases` and `safety.allowed_tables` are defense-in-depth controls, not a substitute for a read-only DB account. Omitted blocked lists use built-in defaults; user-specified blocked lists override defaults (no merge). One-file `report.yml` is acceptable when it contains no secrets, and a future optional split config may be added.

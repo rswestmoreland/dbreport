@@ -160,3 +160,13 @@ export DBREPORT_SMTP_PASSWORD='smtp-password'
 
 
 - sample-report.html is the authoritative generated visual sample.
+
+
+## Safety defaults and overrides
+
+- `allowed_databases` and `allowed_tables` are defense-in-depth controls.
+- If `blocked_functions`, `blocked_columns`, or `blocked_patterns` are omitted, built-in defaults are used.
+- If provided, user lists override defaults in this release (no merge).
+- Static SQL validation is heuristic and does not replace a read-only DB account.
+- A single `report.yml` is acceptable when it contains no secrets.
+- Future optional split report/db-auth config may be added later.
