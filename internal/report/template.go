@@ -12,6 +12,9 @@ const reportTemplate = `<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Title}}</title>
+  <meta name="generator" content="{{.Footer.AppName}} {{.Footer.Version}}">
+  <meta name="dbreport:project" content="https://github.com/rswestmoreland/dbreport">
+  <link rel="help" href="https://github.com/rswestmoreland/dbreport">
   <style>
     :root {
       color-scheme: light;

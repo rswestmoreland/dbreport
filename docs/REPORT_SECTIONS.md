@@ -120,3 +120,6 @@ Contract:
 - Consecutive `metric` sections are automatically rendered as a compact metric-tile grid.
 - Non-metric sections remain full-width cards in the same configured order.
 - Metric tile size and placement are not YAML-configurable yet.
+
+
+- sample-report.html is the authoritative generated visual sample.

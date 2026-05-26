@@ -178,8 +178,15 @@ grep -q "Top Browsers Used" "$REPORT_PATH"
 grep -q "Top Countries Logged in From" "$REPORT_PATH"
 grep -q "<svg" "$REPORT_PATH"
 
-if grep -Eqi 'https?://|<script|\bsrc=|\bhref=' "$REPORT_PATH"; then
+if grep -Eqi '<script|\bsrc=|rel="stylesheet"|url\(' "$REPORT_PATH"; then
   log "report contains disallowed external/script references"
+  exit 1
+fi
+
+if grep -Fq 'https://github.com/rswestmoreland/dbreport' "$REPORT_PATH"; then
+  true
+else
+  log "report missing expected project metadata URL"
   exit 1
 fi
 

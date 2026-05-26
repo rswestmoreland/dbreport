@@ -57,9 +57,12 @@ func TestRenderHTMLContainsNoExternalAssetReferences(t *testing.T) {
 		t.Fatalf("RenderHTML failed: %v", err)
 	}
 	lower := strings.ToLower(string(rendered))
-	for _, forbidden := range []string{"http://", "https://", "<script", " src=", " href="} {
+	for _, forbidden := range []string{"<script", " src=", "rel=\"stylesheet\"", "url("} {
 		if strings.Contains(lower, forbidden) {
 			t.Fatalf("expected no external reference marker %q in rendered HTML", forbidden)
 		}
+	}
+	if !strings.Contains(lower, "https://github.com/rswestmoreland/dbreport") {
+		t.Fatalf("expected project metadata URL")
 	}
 }

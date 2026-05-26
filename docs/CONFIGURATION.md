@@ -157,3 +157,6 @@ export DBREPORT_DB_PASSWORD='change-me'
 export DBREPORT_SMTP_USER='smtp-user'
 export DBREPORT_SMTP_PASSWORD='smtp-password'
 ```
+
+
+- sample-report.html is the authoritative generated visual sample.

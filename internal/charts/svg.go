@@ -17,7 +17,7 @@ const (
 	barRightPad = 36
 	lineHeight  = 260
 	lineLeftPad = 54
-	lineTopPad  = 24
+	lineTopPad  = 42
 	lineColors  = "#2f6fed,#ef4444,#16a34a,#f59e0b,#7c3aed,#0891b2"
 )
 
@@ -140,8 +140,9 @@ func RenderLine(result dbreportdb.Result, labelColumn string, seriesColumn strin
 		maxValue = 1
 	}
 
-	plotWidth := chartWidth - lineLeftPad - 32
-	plotHeight := lineHeight - lineTopPad - 52
+	plotRightPad := 30
+	plotWidth := chartWidth - lineLeftPad - plotRightPad
+	plotHeight := lineHeight - lineTopPad - 62
 	colors := strings.Split(lineColors, ",")
 	var markers strings.Builder
 	var paths strings.Builder
@@ -167,6 +168,7 @@ func RenderLine(result dbreportdb.Result, labelColumn string, seriesColumn strin
 	b.WriteString(fmt.Sprintf(`<line class="chart-axis" x1="%d" y1="%d" x2="%d" y2="%d"></line>`, lineLeftPad, lineTopPad, lineLeftPad, lineTopPad+plotHeight))
 	b.WriteString(fmt.Sprintf(`<text class="chart-tick" x="12" y="%d">%s</text>`, lineTopPad+12, html.EscapeString(formatNumber(maxValue))))
 	b.WriteString(fmt.Sprintf(`<text class="chart-tick" x="12" y="%d">%s</text>`, lineTopPad+plotHeight, html.EscapeString(formatNumber(minValue))))
+	b.WriteString(lineLegend(series, colors))
 	b.WriteString(paths.String())
 	b.WriteString(markers.String())
 	b.WriteString(axisLabels(labels, plotWidth, plotHeight))
@@ -200,11 +202,11 @@ func RenderPie(result dbreportdb.Result, labelColumn string, valueColumn string)
 	if total <= 0 {
 		return emptySVG("No positive values to chart")
 	}
-	cx, cy, r := 190.0, 120.0, 88.0
+	cx, cy, r := 190.0, 108.0, 84.0
 	colors := strings.Split(lineColors, ",")
-	start := -math.Pi / 2
+	start := -math.Pi / 4
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf(`<svg class="chart chart-pie" viewBox="0 0 %d 260" role="img" aria-label="%s">`, chartWidth, html.EscapeString(result.Query.Title)))
+	b.WriteString(fmt.Sprintf(`<svg class="chart chart-pie" viewBox="0 0 %d 236" role="img" aria-label="%s">`, chartWidth, html.EscapeString(result.Query.Title)))
 	b.WriteString(`<rect class="chart-bg" x="0" y="0" width="100%" height="100%" rx="10"></rect>`)
 	for i, p := range points {
 		if p.Value == 0 {
@@ -212,13 +214,13 @@ func RenderPie(result dbreportdb.Result, labelColumn string, valueColumn string)
 		}
 		sweep := (p.Value / total) * 2 * math.Pi
 		x1, y1 := cx+r*math.Cos(start), cy+r*math.Sin(start)
-		end := start + sweep
+		end := start - sweep
 		x2, y2 := cx+r*math.Cos(end), cy+r*math.Sin(end)
 		large := 0
 		if sweep > math.Pi {
 			large = 1
 		}
-		b.WriteString(fmt.Sprintf(`<path d="M %.2f %.2f L %.2f %.2f A %.2f %.2f 0 %d 1 %.2f %.2f Z" fill="%s"></path>`, cx, cy, x1, y1, r, r, large, x2, y2, colors[i%len(colors)]))
+		b.WriteString(fmt.Sprintf(`<path d="M %.2f %.2f L %.2f %.2f A %.2f %.2f 0 %d 0 %.2f %.2f Z" fill="%s" stroke="#fbfcfe" stroke-width="2"></path>`, cx, cy, x1, y1, r, r, large, x2, y2, colors[i%len(colors)]))
 		start = end
 	}
 	for i, p := range points {
@@ -230,15 +232,31 @@ func RenderPie(result dbreportdb.Result, labelColumn string, valueColumn string)
 
 func axisLabels(labels []string, plotWidth int, plotHeight int) string {
 	var b strings.Builder
-	writeX := func(x int, value string) {
-		b.WriteString(fmt.Sprintf(`<text class="chart-label" x="%d" y="%d">%s</text>`, x, lineTopPad+plotHeight+20, html.EscapeString(trimLabel(value, 16))))
+	writeX := func(x int, anchor string, value string) {
+		b.WriteString(fmt.Sprintf(`<text class="chart-label" style="font-size:11px" text-anchor="%s" x="%d" y="%d">%s</text>`, anchor, x, lineTopPad+plotHeight+22, html.EscapeString(value)))
 	}
-	writeX(lineLeftPad, labels[0])
+	writeX(lineLeftPad, "start", labels[0])
 	if len(labels) >= 3 {
-		writeX(lineLeftPad+plotWidth/2, labels[len(labels)/2])
+		writeX(lineLeftPad+plotWidth/2, "middle", labels[len(labels)/2])
 	}
 	if len(labels) > 1 {
-		writeX(lineLeftPad+plotWidth-36, labels[len(labels)-1])
+		writeX(lineLeftPad+plotWidth, "end", labels[len(labels)-1])
+	}
+	return b.String()
+}
+
+func lineLegend(series []string, colors []string) string {
+	if len(series) <= 1 {
+		return ""
+	}
+	var b strings.Builder
+	x := lineLeftPad
+	y := 22
+	for i, label := range series {
+		color := colors[i%len(colors)]
+		b.WriteString(fmt.Sprintf(`<line x1="%d" y1="%d" x2="%d" y2="%d" style="stroke:%s;stroke-width:3;stroke-linecap:round"></line>`, x, y, x+14, y, color))
+		b.WriteString(fmt.Sprintf(`<text class="chart-label" x="%d" y="%d">%s</text>`, x+20, y+4, html.EscapeString(label)))
+		x += 20 + len(label)*7 + 18
 	}
 	return b.String()
 }

@@ -35,3 +35,6 @@ single-binary MariaDB reporting utility, not a full BI platform.
 - Vault integration.
 
 - Consider adding optional CI execution for the MariaDB smoke test in a non-blocking job.
+
+
+- sample-report.html is the authoritative generated visual sample.
