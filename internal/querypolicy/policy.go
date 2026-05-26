@@ -10,7 +10,11 @@ var commentBlock = regexp.MustCompile(`(?s)/\*.*?\*/`)
 var commentLine = regexp.MustCompile(`(?m)--[^\n]*$`)
 var ws = regexp.MustCompile(`\s+`)
 
-type SafetyOptions struct{ AllowedTables, BlockedFunctions, BlockedPatterns []string }
+type SafetyOptions struct {
+	ActiveDatabase                    string
+	AllowedDatabases, AllowedTables   []string
+	BlockedFunctions, BlockedPatterns []string
+}
 
 var defaultBlockedFunctions = []string{"sleep", "benchmark", "load_file"}
 var defaultBlockedPatterns = []string{`(?i)password`, `(?i)passwd`, `(?i)token`, `(?i)api[_-]?key`, `(?i)secret`, `(?i)private[_-]?key`, `(?i)session`, `(?i)cookie`}
@@ -62,6 +66,11 @@ func Validate(queryID, title, sql string, opts SafetyOptions) error {
 			return err
 		}
 	}
+	if len(opts.AllowedDatabases) > 0 {
+		if err := validateDatabases(queryID, title, low, opts.ActiveDatabase, opts.AllowedDatabases); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 func normalize(s string) string {
@@ -95,6 +104,36 @@ func validateTables(id, title, low string, allowed []string) error {
 		tbl = parts[len(parts)-1]
 		if _, ok := allow[tbl]; !ok {
 			return scopedErr(id, title, fmt.Sprintf("query policy rejected SQL: table %q is not in safety.allowed_tables", tbl))
+		}
+	}
+	return nil
+}
+func validateDatabases(id, title, low, active string, allowed []string) error {
+	if strings.Contains(low, " from (") || strings.Contains(low, " join (") {
+		return scopedErr(id, title, "query policy rejected SQL: query too complex to validate allowed_databases")
+	}
+	allow := map[string]struct{}{}
+	for _, d := range allowed {
+		allow[strings.ToLower(strings.TrimSpace(d))] = struct{}{}
+	}
+	re := regexp.MustCompile(`\b(?:from|join)\s+([a-zA-Z0-9_\.]+)`)
+	m := re.FindAllStringSubmatch(low, -1)
+	if len(m) == 0 {
+		return scopedErr(id, title, "query policy rejected SQL: could not validate allowed_databases")
+	}
+	active = strings.ToLower(strings.TrimSpace(active))
+	for _, g := range m {
+		ref := strings.Trim(g[1], "`")
+		parts := strings.Split(ref, ".")
+		db := active
+		if len(parts) > 1 {
+			db = strings.ToLower(parts[0])
+		}
+		if db == "" {
+			return scopedErr(id, title, "query policy rejected SQL: could not determine database for allowed_databases enforcement")
+		}
+		if _, ok := allow[db]; !ok {
+			return scopedErr(id, title, fmt.Sprintf("query policy rejected SQL: database %q is not in safety.allowed_databases", db))
 		}
 	}
 	return nil

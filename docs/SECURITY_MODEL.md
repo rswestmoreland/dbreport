@@ -17,3 +17,6 @@ dbreport assumes trusted, reviewed YAML query configuration and enforces defense
 - Version-control report config and review queries before enabling email delivery.
 - A single report.yml is acceptable when it contains no secrets.
 - A future optional split between report and auth config may be added.
+
+
+Safety defaults: omitted blocked function/column/pattern lists use built-in defaults; configured lists override defaults for that list.

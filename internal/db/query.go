@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/rswestmoreland/dbreport/internal/config"
@@ -79,6 +81,32 @@ func RunQuery(ctx context.Context, handle *sql.DB, query config.QueryConfig, max
 
 	result.Duration = time.Since(start)
 	return result, nil
+}
+
+func ValidateReturnedColumns(result Result, blockedColumns, blockedPatterns []string) error {
+	blocked := map[string]struct{}{}
+	for _, c := range blockedColumns {
+		blocked[strings.ToLower(strings.TrimSpace(c))] = struct{}{}
+	}
+	patterns := make([]*regexp.Regexp, 0, len(blockedPatterns))
+	for _, p := range blockedPatterns {
+		re, err := regexp.Compile(p)
+		if err == nil {
+			patterns = append(patterns, re)
+		}
+	}
+	for _, c := range result.Columns {
+		lc := strings.ToLower(strings.TrimSpace(c))
+		if _, ok := blocked[lc]; ok {
+			return fmt.Errorf("query %q (%s): blocked column in result set: %q", result.Query.ID, result.Query.Title, c)
+		}
+		for _, re := range patterns {
+			if re.MatchString(c) {
+				return fmt.Errorf("query %q (%s): blocked column pattern match in result set: %q", result.Query.ID, result.Query.Title, c)
+			}
+		}
+	}
+	return nil
 }
 
 type QueryError struct {

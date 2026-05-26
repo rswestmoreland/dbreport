@@ -17,6 +17,8 @@ import (
 	"github.com/rswestmoreland/dbreport/internal/report"
 )
 
+var defaultBlockedColumns = []string{"password", "passwd", "password_hash", "token", "api_key", "secret", "private_key", "session", "cookie"}
+
 const (
 	ExitSuccess       = 0
 	ExitGeneralError  = 1
@@ -114,6 +116,18 @@ func (r Runner) check(args []string) int {
 		return ExitQueryError
 	}
 
+	blockedColumns := cfg.Safety.BlockedColumns
+	if len(blockedColumns) == 0 {
+		blockedColumns = defaultBlockedColumns
+	}
+	_, blockedPatterns := querypolicy.Defaults(cfg.Safety.BlockedFunctions, cfg.Safety.BlockedPatterns)
+	for _, result := range results {
+		if err := dbreportdb.ValidateReturnedColumns(result, blockedColumns, blockedPatterns); err != nil {
+			fmt.Fprintf(r.Stderr, "%s\n", err.Error())
+			return ExitQueryError
+		}
+	}
+
 	r.statusf(opts, "configuration valid: %s\n", path)
 	r.statusf(opts, "database connected: %s\n", dbreportdb.SafeTarget(cfg.Database))
 	r.statusf(opts, "queries valid: %d\n", len(results))
@@ -158,6 +172,18 @@ func (r Runner) run(args []string) int {
 	if err != nil {
 		fmt.Fprintf(r.Stderr, "%s\n", err.Error())
 		return ExitQueryError
+	}
+
+	blockedColumns := cfg.Safety.BlockedColumns
+	if len(blockedColumns) == 0 {
+		blockedColumns = defaultBlockedColumns
+	}
+	_, blockedPatterns := querypolicy.Defaults(cfg.Safety.BlockedFunctions, cfg.Safety.BlockedPatterns)
+	for _, result := range results {
+		if err := dbreportdb.ValidateReturnedColumns(result, blockedColumns, blockedPatterns); err != nil {
+			fmt.Fprintf(r.Stderr, "%s\n", err.Error())
+			return ExitQueryError
+		}
 	}
 
 	doc, err := report.NewDocument(*cfg, results)
@@ -229,7 +255,7 @@ func (r Runner) loadConfig(opts commonOptions) (*config.Config, string, int) {
 	}
 	for _, q := range cfg.Queries {
 		blockedFns, blockedPatterns := querypolicy.Defaults(cfg.Safety.BlockedFunctions, cfg.Safety.BlockedPatterns)
-		err = querypolicy.Validate(q.ID, q.Title, q.SQL, querypolicy.SafetyOptions{AllowedTables: cfg.Safety.AllowedTables, BlockedFunctions: blockedFns, BlockedPatterns: blockedPatterns})
+		err = querypolicy.Validate(q.ID, q.Title, q.SQL, querypolicy.SafetyOptions{ActiveDatabase: cfg.Database.Name, AllowedDatabases: cfg.Safety.AllowedDatabases, AllowedTables: cfg.Safety.AllowedTables, BlockedFunctions: blockedFns, BlockedPatterns: blockedPatterns})
 		if err != nil {
 			fmt.Fprintf(r.Stderr, "%s\n", err.Error())
 			return nil, path, ExitConfigError
