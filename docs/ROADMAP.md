@@ -81,3 +81,6 @@ Rules for the planned contract:
 - Redaction rules.
 - CSV or JSON export.
 - Vault integration.
+
+## Implemented: named query parameters
+Named value placeholders, --param/--params loading, required referenced parameters, and unused parameter rejection are implemented.

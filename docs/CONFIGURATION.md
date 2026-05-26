@@ -170,3 +170,6 @@ export DBREPORT_SMTP_PASSWORD='smtp-password'
 - Static SQL validation is heuristic and does not replace a read-only DB account.
 - A single `report.yml` is acceptable when it contains no secrets.
 - Future optional split report/db-auth config may be added later.
+
+## Query parameters
+Use repeated --param name=value and optional --params params.yml. CLI --param overrides file values. Duplicate --param names are rejected. params.yml must be a top-level mapping of scalar values only.

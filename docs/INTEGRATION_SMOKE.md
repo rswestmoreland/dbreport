@@ -64,3 +64,5 @@ A screenshot image can be added later from browser-rendered capture if needed; f
 
 
 - sample-report.html is the authoritative generated visual sample.
+
+Smoke uses examples/auth-login-params.yml via --params for auth sample.

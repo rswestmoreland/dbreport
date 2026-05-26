@@ -78,6 +78,7 @@ type QueryConfig struct {
 	ValueColumn  string `yaml:"value_column"`
 	ShowTable    *bool  `yaml:"show_table"`
 	SQL          string `yaml:"sql"`
+	Args         []any  `yaml:"-"`
 }
 
 func LoadFile(path string) (*Config, error) {
