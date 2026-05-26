@@ -13,6 +13,7 @@ import (
 	dbreportdb "github.com/rswestmoreland/dbreport/internal/db"
 	dbreportemail "github.com/rswestmoreland/dbreport/internal/email"
 	"github.com/rswestmoreland/dbreport/internal/output"
+	"github.com/rswestmoreland/dbreport/internal/querypolicy"
 	"github.com/rswestmoreland/dbreport/internal/report"
 )
 
@@ -225,6 +226,14 @@ func (r Runner) loadConfig(opts commonOptions) (*config.Config, string, int) {
 	if err != nil {
 		fmt.Fprintf(r.Stderr, "%s\n", err.Error())
 		return nil, path, ExitConfigError
+	}
+	for _, q := range cfg.Queries {
+		blockedFns, blockedPatterns := querypolicy.Defaults(cfg.Safety.BlockedFunctions, cfg.Safety.BlockedPatterns)
+		err = querypolicy.Validate(q.ID, q.Title, q.SQL, querypolicy.SafetyOptions{AllowedTables: cfg.Safety.AllowedTables, BlockedFunctions: blockedFns, BlockedPatterns: blockedPatterns})
+		if err != nil {
+			fmt.Fprintf(r.Stderr, "%s\n", err.Error())
+			return nil, path, ExitConfigError
+		}
 	}
 	return cfg, path, ExitSuccess
 }
