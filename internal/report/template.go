@@ -186,10 +186,13 @@ const reportTemplate = `<!doctype html>
       <div class="section-body">
         {{if eq $s.Type "bar"}}
           {{$s.ChartHTML}}
-          {{template "table" $s}}
+          {{if $s.ShowTable}}{{template "table" $s}}{{end}}
         {{else if eq $s.Type "line"}}
           {{$s.ChartHTML}}
-          {{template "table" $s}}
+          {{if $s.ShowTable}}{{template "table" $s}}{{end}}
+        {{else if eq $s.Type "pie"}}
+          {{$s.ChartHTML}}
+          {{if $s.ShowTable}}{{template "table" $s}}{{end}}
         {{else}}
           {{template "table" $s}}
         {{end}}

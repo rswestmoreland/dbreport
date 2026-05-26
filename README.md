@@ -28,7 +28,7 @@ BI platform, scheduler, or PDF renderer would be unnecessary.
 - MariaDB connection path using Go `database/sql`.
 - Query execution with per-query timeout.
 - Row cap enforcement.
-- Metric, table, bar chart, and line chart report sections.
+- Metric, table, bar chart, line chart, and pie chart report sections.
 - Self-contained HTML report rendering.
 - Optional SMTP email delivery.
 - CLI polish flags: `--quiet`, `--verbose`, `--email`, and `--no-email`.
@@ -151,6 +151,7 @@ metric
 table
 bar
 line
+pie
 ```
 
 See `docs/REPORT_SECTIONS.md` for contracts and query shape examples.
@@ -189,9 +190,12 @@ The script prefers a local MariaDB runtime first, falls back to Docker, and othe
 
 Run the smoke test with `DBREPORT_KEEP_SAMPLE_REPORT=1` to save a real generated sample report to `docs/assets/sample-report.html`. The sample data is fake and uses non-real domains with reserved TLDs such as `.invalid`, `.test`, and `.example`.
 
-![Sample dbreport HTML report](docs/assets/sample-report.svg)
+A generated sample HTML report is included at:
 
-Open the saved HTML sample directly: [docs/assets/sample-report.html](docs/assets/sample-report.html).
+- [docs/assets/sample-report.html](docs/assets/sample-report.html)
+
+It is generated from the optional MariaDB smoke-test dataset using fake data and reserved example domains.
+
 
 The project is preparing for `v0.1.0-alpha.1` with validated smoke-test sample assets and release metadata.
 

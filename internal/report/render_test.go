@@ -64,7 +64,33 @@ func TestRenderBarChart(t *testing.T) {
 		t.Fatalf("RenderHTML failed: %v", err)
 	}
 
-	if !strings.Contains(string(rendered), "chart-bar") {
+	text := string(rendered)
+	if !strings.Contains(text, "chart-bar") {
 		t.Fatalf("expected bar chart markup")
+	}
+	if !strings.Contains(text, "<table>") {
+		t.Fatalf("expected fallback table by default")
+	}
+}
+
+func TestRenderChartWithoutFallbackTable(t *testing.T) {
+	showTable := false
+	cfg := config.Config{Title: "Chart Report"}
+	results := []dbreportdb.Result{{
+		Query:    config.QueryConfig{ID: "daily", Title: "Daily", Type: "line", LabelColumn: "day", ValueColumn: "count", ShowTable: &showTable},
+		Columns:  []string{"day", "count"},
+		Rows:     [][]dbreportdb.Cell{{dbreportdb.ConvertCell("2026-05-24"), dbreportdb.ConvertCell(int64(3))}},
+		Duration: time.Millisecond,
+	}}
+	doc, err := NewDocument(cfg, results)
+	if err != nil {
+		t.Fatalf("NewDocument failed: %v", err)
+	}
+	rendered, err := RenderHTML(doc)
+	if err != nil {
+		t.Fatalf("RenderHTML failed: %v", err)
+	}
+	if strings.Contains(string(rendered), "<table>") {
+		t.Fatalf("expected fallback table to be suppressed")
 	}
 }
